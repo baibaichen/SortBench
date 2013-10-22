@@ -633,6 +633,7 @@ void algo_combsort(size_t n, TYPE a[])
     } while (do_swap || gap > 1);
 }
 
+void doSort(int* a, int left, int right);
 
 int main(int argc, char *argv[])
 {
@@ -819,6 +820,25 @@ int main(int argc, char *argv[])
             exit(1);
         }
     }
+
+    srand48(11);
+    for (i = 0; i < N; ++i) array[i] = (int)lrand48();
+    t1 = clock();
+    doSort(array, 0,N-1);
+    t2 = clock();
+    fprintf(stderr, "java's dual pivot sort: %.3lf\n", (double)(t2-t1)/CLOCKS_PER_SEC);
+    for (i = 0; i < N-1; ++i) {
+      if (array[i] > array[i+1]) {
+        fprintf(stderr, "Bug in intro_sort!\n");
+        exit(1);
+      }
+    }
+
+    t1 = clock();
+    doSort(array, 0,N-1);
+    t2 = clock();
+    fprintf(stderr, "java's dual pivot sort (sorted): %.3lf\n", (double)(t2-t1)/CLOCKS_PER_SEC);
+
 
     free(array); free(temp);
     return 0;
