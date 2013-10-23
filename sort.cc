@@ -820,7 +820,7 @@ static void bench(int size, state_t state)
         sort_heap(data,data+size);
         break;
       case paul_qsort:
-        if(state != reversed)
+        if(state != reversed || size <= 1000000)
           quickSort(data,size);
         break;
       case paul_mergesort:
