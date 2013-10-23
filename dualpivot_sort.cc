@@ -1,6 +1,6 @@
 
 
-const int INSERTION_SORT_THRESHOLD = 50;
+const int INSERTION_SORT_THRESHOLD = 32;
 
 void doSort(int* a, int left, int right);
 
