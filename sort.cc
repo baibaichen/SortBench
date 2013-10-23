@@ -572,6 +572,86 @@ int * tmpArray;
  * END OF PAUL'S IMPLEMENTATION *
  ********************************/
 
+/*****************************************
+ * BEGIN OF Jon Bentley'S IMPLEMENTATION *
+ *****************************************/
+typedef int DType;
+
+int randint(int l, int u)
+{	
+	return l + (RAND_MAX*rand() + rand()) % (u-l+1);
+}
+
+inline void Bentleyswap(DType*x,int i, int j)
+{	
+	DType t = x[i];
+	x[i] = x[j];
+	x[j] = t;
+}
+void isort3(DType*data,int n)
+{	
+	int i, j;
+	DType t;
+	for (i = 1; i < n; i++) {
+	t = data[i];
+	for (j = i; j > 0 && data[j-1] > t; j--)
+		data[j] = data[j-1];
+	data[j] = t;
+	}
+}
+
+/* qsort3 + randomization + isort small subarrays + swap inline */
+int cutoff = 32;
+void qsort4(DType*data, int l, int u)
+{	
+	int i, j;
+	DType t;
+	if (u - l < cutoff)
+		return;
+	Bentleyswap(data,l, randint(l, u));
+	t = data[l];
+	i = l;
+	j = u+1;
+	for (;;) {
+		do i++; while (i <= u && data[i] < t);
+		do j--; while (data[j] > t);
+		if (i > j)
+			break;
+		//temp = data[i]; data[i] = data[j]; data[j] = temp;
+		Bentleyswap(data,i, j);
+	}
+	Bentleyswap(data,l, j);
+	qsort4(data,l, j-1);
+	qsort4(data,j+1, u);
+}
+
+void qsort5(DType*data, int l, int u)
+{	
+	int i, j;
+	DType t;
+	if (u - l < cutoff){
+		isort3(data,u-l+1);
+		return;
+	}
+	Bentleyswap(data,l, randint(l, u));
+	t = data[l];
+	i = l;
+	j = u+1;
+	for (;;) {
+		do i++; while (i <= u && data[i] < t);
+		do j--; while (data[j] > t);
+		if (i > j)
+			break;
+		//temp = data[i]; data[i] = data[j]; data[j] = temp;
+		Bentleyswap(data,i, j);
+	}
+	Bentleyswap(data,l, j);
+	qsort5(data,l, j-1);
+	qsort5(data,j+1, u);
+}
+/***************************************
+ * END OF Jon Bentley'S IMPLEMENTATION *
+ ***************************************/
 struct intcmp_t {
     inline int operator() (int a, int b) const {
         return a < b? -1 : a > b? 1 : 0;
@@ -647,7 +727,7 @@ enum state_t
   partially_sorted_0, 
   partially_sorted_1,  
   unique_key_100000,
-  unique_key_1000,
+  unique_key_100,
   STATE_NUMBER,
 };
 
@@ -672,8 +752,8 @@ void generate_test_datas(_RanIt _First, _RanIt _Last, state_t state)
   int m = _Last-_First;
   if (state ==  unique_key_100000)
     m = 100000;
-  else if(state ==  unique_key_1000)
-    m = 1000;
+  else if(state ==  unique_key_100)
+    m = 100;
   
   _RanIt first_tmp = _First;
   while (first_tmp != _Last)
@@ -683,7 +763,7 @@ void generate_test_datas(_RanIt _First, _RanIt _Last, state_t state)
   {
   case randomized:
   case unique_key_100000:
-  case unique_key_1000:
+  case unique_key_100:
     std::random_shuffle(_First,_Last);
     break;
   case reversed:
@@ -763,6 +843,8 @@ enum sortmethod_t
   paul_qsort,
   paul_mergesort,
   paul_heapSort,
+  Bentley_qsort,
+  Bentley_qsort5,
   java_dual_pivot,
   java_timsort,
 };
@@ -778,71 +860,91 @@ BenchEntry IntBenchEntries[] =
 {
   //{c_qsort,         "       c qsort"},
   {stl_sort,        "      c++ sort"},
-  {stl_stable_sort, "c++ stablesort"},
+  //{stl_stable_sort, "c++ stablesort"},
   //{stl_heap_sort,   "  c++ heapsort"},
   {paul_qsort,      "    paul qsort"},
-  {paul_mergesort,   "paul mergesort"},
+  //{paul_mergesort,   "paul mergesort"},
   //{paul_heapSort,   " paul heapsort"},
+  {Bentley_qsort,    " Bentley qsort"},
+  {Bentley_qsort5,   "Bentley qsort5"},
   {java_dual_pivot, "    dual pivot"},
-  {java_timsort,    "       timsort"},
+  //{java_timsort,    "       timsort"},
 };
 
 int intcomp(int *x, int *y)
 {	return *x - *y;
 }
 
-static void bench(int size, state_t state)
+static void bench(int size, state_t state,int iter=10)
 {
     int * data = (int *) malloc(sizeof(int) * size);
+	for(int i = 0; 
+		i < sizeof(IntBenchEntries)/sizeof(IntBenchEntries[0]); 
+		i++){
+			IntBenchEntries[i].sumOfTimes[state]=0;
+	}
+	int iter_tmp = iter;
+	do{
+		for(int i = 0; 
+			i < sizeof(IntBenchEntries)/sizeof(IntBenchEntries[0]); 
+			i++){
+		  generate_test_datas(data,data+size,state);
 
-    for(int i = 0; 
-        i < sizeof(IntBenchEntries)/sizeof(IntBenchEntries[0]); 
-        i++){
-      generate_test_datas(data,data+size,state);
-      IntBenchEntries[i].sumOfTimes[state]=0;
-      cerr<<"run " << IntBenchEntries[i].name;
+		  cerr<<"run " << IntBenchEntries[i].name;
 
-      clock_t t1 = clock();
-      switch (IntBenchEntries[i].method)
-      {
-      case c_qsort:
-          qsort(data, size, sizeof(int), 
-               (int (__cdecl *)(const void *,const void *)) intcomp);
-        break;
-      case stl_sort:
-        std::sort(data,data+size);
-        break;
-      case stl_stable_sort:
-        std::stable_sort(data,data+size);
-        break;
-      case stl_heap_sort:
-        make_heap(data,data+size);
-        sort_heap(data,data+size);
-        break;
-      case paul_qsort:
-        if(state != reversed || size <= 1000000)
-          quickSort(data,size);
-        break;
-      case paul_mergesort:
-        mergeSort(data,size);
-        break;
-      case paul_heapSort:
-        heapSort(data,size);
-        break;
-      case java_dual_pivot:
-        doSort(data, 0,size-1);
-        break;
-      case java_timsort:
-        gfx::timsort(data,data+size);
-        break;
-      }
-      clock_t t2 = clock();
+		  clock_t t1 = clock();
+		  switch (IntBenchEntries[i].method)
+		  {
+		  case c_qsort:
+			  qsort(data, size, sizeof(int), 
+				   (int (__cdecl *)(const void *,const void *)) intcomp);
+			break;
+		  case stl_sort:
+			std::sort(data,data+size);
+			break;
+		  case stl_stable_sort:
+			std::stable_sort(data,data+size);
+			break;
+		  case stl_heap_sort:
+			make_heap(data,data+size);
+			sort_heap(data,data+size);
+			break;
+		  case paul_qsort:
+			if(state != reversed || size < 1000000)
+			  quickSort(data,size);
+			break;
+		  case paul_mergesort:
+			mergeSort(data,size);
+			break;
+		  case paul_heapSort:
+			heapSort(data,size);
+			break;
+		  case Bentley_qsort:
+			  qsort4(data,0,size-1);
+			  isort3(data,size);
+			break;
+		  case Bentley_qsort5:
+			  qsort5(data,0,size-1);
+			  break;
+		  case java_dual_pivot:
+			doSort(data, 0,size-1);
+			break;
+		  case java_timsort:
+			gfx::timsort(data,data+size);
+			break;
+		  }
+		  clock_t t2 = clock();
 
-      IntBenchEntries[i].sumOfTimes[state] = (double)(t2-t1)/CLOCKS_PER_SEC;
+		  IntBenchEntries[i].sumOfTimes[state] += (double)(t2-t1)/CLOCKS_PER_SEC;
 
-      cerr <<", time = " << IntBenchEntries[i].sumOfTimes[state] <<" s \n";
-    }
-
+		  cerr <<", time = " << IntBenchEntries[i].sumOfTimes[state] <<" s \n";
+		}
+	}while (--iter>0);
+	for(int i = 0; 
+		i < sizeof(IntBenchEntries)/sizeof(IntBenchEntries[0]); 
+		i++){
+			IntBenchEntries[i].sumOfTimes[state] /= iter_tmp;
+	}
     free(data);
 }
 int main(int argc, char *argv[])
@@ -859,7 +961,7 @@ int main(int argc, char *argv[])
     bench(N,partially_sorted_0);
     bench(N,partially_sorted_1); 
     bench(N,unique_key_100000); 
-    bench(N,unique_key_1000); 
+    bench(N,unique_key_100); 
     cout<< "  size    \t" 
         << " method   \t" 
         << " sorted   \t" 
@@ -882,7 +984,7 @@ int main(int argc, char *argv[])
         <<IntBenchEntries[i].sumOfTimes[partially_sorted_0]<<'\t'
         <<IntBenchEntries[i].sumOfTimes[partially_sorted_1]<<'\t'
         <<IntBenchEntries[i].sumOfTimes[unique_key_100000]<<'\t'
-        <<IntBenchEntries[i].sumOfTimes[unique_key_1000]<<'\t'
+        <<IntBenchEntries[i].sumOfTimes[unique_key_100]<<'\t'
         <<'\n';
     }
 
