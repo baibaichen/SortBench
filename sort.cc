@@ -3,7 +3,7 @@
 #include <stdio.h>
 #include <time.h>
 #include <algorithm>
-
+#include <functional>
 #include <iostream>
 
 #include "sort.h"
@@ -646,7 +646,8 @@ enum state_t
   reversed, 
   partially_sorted_0, 
   partially_sorted_1,  
-
+  unique_key_100000,
+  unique_key_1000,
   STATE_NUMBER,
 };
 
@@ -662,17 +663,57 @@ template <typename _RanIt>
 void generate_test_datas(_RanIt _First, _RanIt _Last, state_t state)
 {
   int i = 0;
+  
+  typedef iterator_traits<_RanIt>::value_type value_t;
+
+  std::less<value_t> lt;
+  std::greater<value_t> gt;
+
+  int m = _Last-_First;
+  if (state ==  unique_key_100000)
+    m = 100000;
+  else if(state ==  unique_key_1000)
+    m = 1000;
+  
   _RanIt first_tmp = _First;
   while (first_tmp != _Last)
-    *first_tmp++ = i++;
+    *first_tmp++ = (i++)%m;
   
   switch(state)
   {
   case randomized:
+  case unique_key_100000:
+  case unique_key_1000:
     std::random_shuffle(_First,_Last);
     break;
   case reversed:
     std::reverse(_First,_Last);
+    break;
+  case partially_sorted_0:
+    {
+      std::random_shuffle(_First,_Last);
+      bool toggle = true;
+      for(_RanIt i=_First; i < _Last; i+=10){
+        if(toggle)
+          std::stable_sort(i, i+10, lt);
+        else
+          std::stable_sort(i, i+10, gt);
+        toggle = !toggle;
+      }
+    }
+    break;
+  case partially_sorted_1:
+    {
+      std::random_shuffle(_First,_Last);
+      bool toggle = true;
+      for(_RanIt i=_First; i < _Last; i+=1000){
+        if(toggle)
+          std::stable_sort(i, i+1000, lt);
+        else
+          std::stable_sort(i, i+1000, gt);
+        toggle = !toggle;
+      }
+    }
     break;
   case sorted:
     break;
@@ -718,6 +759,10 @@ enum sortmethod_t
   c_qsort,
   stl_sort,
   stl_stable_sort,
+  stl_heap_sort,
+  paul_qsort,
+  paul_mergesort,
+  paul_heapSort,
   java_dual_pivot,
   java_timsort,
 };
@@ -731,11 +776,15 @@ struct BenchEntry
 
 BenchEntry IntBenchEntries[] =
 {
-  {c_qsort,         " c qsort  "},
-  {stl_sort,        " c++ sort "},
-  {stl_stable_sort, "c++ stable"},
-  {java_dual_pivot, "dual pivot"},
-  {java_timsort,    " timsort  "},
+  //{c_qsort,         "       c qsort"},
+  {stl_sort,        "      c++ sort"},
+  {stl_stable_sort, "c++ stablesort"},
+  //{stl_heap_sort,   "  c++ heapsort"},
+  {paul_qsort,      "    paul qsort"},
+  {paul_mergesort,   "paul mergesort"},
+  //{paul_heapSort,   " paul heapsort"},
+  {java_dual_pivot, "    dual pivot"},
+  {java_timsort,    "       timsort"},
 };
 
 int intcomp(int *x, int *y)
@@ -751,9 +800,9 @@ static void bench(int size, state_t state)
         i++){
       generate_test_datas(data,data+size,state);
       IntBenchEntries[i].sumOfTimes[state]=0;
+      cerr<<"run " << IntBenchEntries[i].name;
 
       clock_t t1 = clock();
-
       switch (IntBenchEntries[i].method)
       {
       case c_qsort:
@@ -766,16 +815,32 @@ static void bench(int size, state_t state)
       case stl_stable_sort:
         std::stable_sort(data,data+size);
         break;
+      case stl_heap_sort:
+        make_heap(data,data+size);
+        sort_heap(data,data+size);
+        break;
+      case paul_qsort:
+        if(state != reversed)
+          quickSort(data,size);
+        break;
+      case paul_mergesort:
+        mergeSort(data,size);
+        break;
+      case paul_heapSort:
+        heapSort(data,size);
+        break;
       case java_dual_pivot:
         doSort(data, 0,size-1);
         break;
       case java_timsort:
         gfx::timsort(data,data+size);
         break;
-
       }
       clock_t t2 = clock();
+
       IntBenchEntries[i].sumOfTimes[state] = (double)(t2-t1)/CLOCKS_PER_SEC;
+
+      cerr <<", time = " << IntBenchEntries[i].sumOfTimes[state] <<" s \n";
     }
 
     free(data);
@@ -791,16 +856,33 @@ int main(int argc, char *argv[])
     bench(N,sorted);
     bench(N,randomized);
     bench(N,reversed);
-
-    cout<<"method\t" << "sorted\t" << "randomized\t" << "reversed\t"<<"\n";
+    bench(N,partially_sorted_0);
+    bench(N,partially_sorted_1); 
+    bench(N,unique_key_100000); 
+    bench(N,unique_key_1000); 
+    cout<< "  size    \t" 
+        << " method   \t" 
+        << " sorted   \t" 
+        << "randomized\t" 
+        << "reversed  \t"
+        << "partially sorted 0\t"
+        << "partially sorted 1\t"
+        << "unique key 100000 0\t"
+        << "unique key 1000 1\t"
+        <<"\n";
 
     for(int i = 0; 
       i < sizeof(IntBenchEntries)/sizeof(IntBenchEntries[0]); 
       i++){
-      cout<<IntBenchEntries[i].name<<'\t'
+      cout<<N<<'\t'
+        <<IntBenchEntries[i].name<<'\t'
         <<IntBenchEntries[i].sumOfTimes[sorted]<<'\t'
         <<IntBenchEntries[i].sumOfTimes[randomized]<<'\t'
         <<IntBenchEntries[i].sumOfTimes[reversed]<<'\t'
+        <<IntBenchEntries[i].sumOfTimes[partially_sorted_0]<<'\t'
+        <<IntBenchEntries[i].sumOfTimes[partially_sorted_1]<<'\t'
+        <<IntBenchEntries[i].sumOfTimes[unique_key_100000]<<'\t'
+        <<IntBenchEntries[i].sumOfTimes[unique_key_1000]<<'\t'
         <<'\n';
     }
 
