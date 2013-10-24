@@ -649,6 +649,81 @@ void qsort5(DType*data, int l, int u)
   qsort5(data,l, j-1);
   qsort5(data,j+1, u);
 }
+
+//// copy from stl
+//template<class _RanIt> inline
+//void Med3(_RanIt _First, _RanIt _Mid, _RanIt _Last)
+//{ // sort median of three elements to middle
+//  if (*_Mid < *_First)
+//    std::iter_swap(_Mid, _First);
+//
+//  if (*_Last < *_Mid){ // swap middle and last, then test first again
+//    std::iter_swap(_Last, _Mid);
+//    if (*_Mid < * _First)
+//      std::iter_swap(_Mid, _First);    
+//  }
+//}
+//
+//template<class _RanIt> inline
+//void Median(_RanIt _First, _RanIt _Mid, _RanIt _Last)
+//{ // sort median element to middle
+//  if (40 < _Last - _First){ // median of nine
+//    size_t _Step = (_Last - _First + 1) / 8;
+//    Med3(_First, _First + _Step, _First + 2 * _Step);
+//    Med3(_Mid - _Step, _Mid, _Mid + _Step);
+//    Med3(_Last - 2 * _Step, _Last - _Step, _Last);
+//    Med3(_First + _Step, _Mid, _Last - _Step);
+//  }else
+//    Med3(_First, _Mid, _Last);
+//}
+
+template<class _RanIt> inline
+_RanIt Med3(_RanIt _First, _RanIt _Mid, _RanIt _Last)
+{ 
+  return (*_First < *_Mid)?
+            ((*_Mid < *_Last)? _Mid: (*_First < *_Last) ? _Last:_First):
+            ((*_Mid > *_Last)? _Mid: (*_First < *_Last) ? _First:_Last);
+}
+
+template<class _RanIt> inline
+_RanIt Median(_RanIt _First, _RanIt _Mid, _RanIt _Last)
+{ // sort median element to middle
+  if (40 < _Last - _First){ // median of nine
+    size_t _Step = (_Last - _First + 1) / 8;
+    _RanIt p1 = Med3(_First, _First + _Step, _First + 2 * _Step);
+    _RanIt p2 = Med3(_Mid - _Step, _Mid, _Mid + _Step);
+    _RanIt p3 = Med3(_Last - 2 * _Step, _Last - _Step, _Last);
+    return Med3(p1,p2,p3);
+  }else
+    return Med3(_First, _Mid, _Last);
+}
+
+void qsort6(DType*data, int l, int u)
+{  
+  int i, j;
+  DType t;
+  if (u - l < cutoff){
+    isort3(data,u-l+1);
+    return;
+  }
+  int  Mid = l + (u + 1 - l) / 2;  // sort median to _Mid
+  DType *pm = Median(data+l, data+Mid, data+u);
+  t = *pm; *pm=data[l]; data[l]=t; //swap
+
+  i = l;
+  j = u+1;
+  for (;;) {
+    do i++; while (i <= u && data[i] < t);
+    do j--; while (data[j] > t);
+    if (i > j)
+      break;
+    Bentleyswap(data,i, j);
+  }
+  Bentleyswap(data,l, j);
+  qsort6(data,l, j-1);
+  qsort6(data,j+1, u);
+}
+
 /***************************************
  * END OF Jon Bentley'S IMPLEMENTATION *
  ***************************************/
@@ -818,6 +893,7 @@ enum sortalgo_t
   paul_heapSort,
   Bentley_qsort,
   Bentley_qsort5,
+  Bentley_qsort6,
   java_dual_pivot,
   java_timsort,
 };
@@ -833,15 +909,16 @@ struct BenchEntry
 BenchEntry IntBenchEntries[] =
 {
   //{c_qsort,         "       c qsort"},
-  {stl_sort,        "      c++ sort"},
+  //{stl_sort,        "      c++ sort"},
   //{stl_stable_sort, "c++ stablesort"},
   //{stl_heap_sort,   "  c++ heapsort"},
-  {paul_qsort,      "    paul qsort"},
+  //{paul_qsort,      "    paul qsort"},
   //{paul_mergesort,   "paul mergesort"},
   //{paul_heapSort,   " paul heapsort"},
-  {Bentley_qsort,    " Bentley qsort"},
+  //{Bentley_qsort,    " Bentley qsort"},
   {Bentley_qsort5,   "Bentley qsort5"},
-  {java_dual_pivot, "    dual pivot"},
+  {Bentley_qsort6,   "Bentley qsort6"},
+  //{java_dual_pivot, "    dual pivot"},
   //{java_timsort,    "       timsort"},
 };
 
@@ -888,6 +965,9 @@ inline static double run_sort(sortalgo_t runalgo, int * data, int size )
     break;
   case Bentley_qsort5:
     qsort5(data,0,size-1);
+    break;
+  case Bentley_qsort6:
+    qsort6(data,0,size-1);
     break;
   case java_dual_pivot:
     doSort(data, 0,size-1);
