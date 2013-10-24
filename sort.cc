@@ -697,8 +697,33 @@ _RanIt Median(_RanIt _First, _RanIt _Mid, _RanIt _Last)
   }else
     return Med3(_First, _Mid, _Last);
 }
-
 void qsort6(DType*data, int l, int u)
+{  
+  int i, j;
+  DType t;
+  if (u - l < cutoff){
+    isort3(data,u-l+1);
+    return;
+  }
+  int  Mid = l + (u + 1 - l) / 2;  // sort median to _Mid
+  DType *pm = Med3(data+l, data+Mid, data+u);
+  t = *pm; *pm=data[l]; data[l]=t; //swap
+
+  i = l;
+  j = u+1;
+  for (;;) {
+    do i++; while (i <= u && data[i] < t);
+    do j--; while (data[j] > t);
+    if (i > j)
+      break;
+    Bentleyswap(data,i, j);
+  }
+  Bentleyswap(data,l, j);
+  qsort6(data,l, j-1);
+  qsort6(data,j+1, u);
+}
+
+void qsort7(DType*data, int l, int u)
 {  
   int i, j;
   DType t;
@@ -720,8 +745,8 @@ void qsort6(DType*data, int l, int u)
     Bentleyswap(data,i, j);
   }
   Bentleyswap(data,l, j);
-  qsort6(data,l, j-1);
-  qsort6(data,j+1, u);
+  qsort7(data,l, j-1);
+  qsort7(data,j+1, u);
 }
 
 /***************************************
@@ -894,6 +919,7 @@ enum sortalgo_t
   Bentley_qsort,
   Bentley_qsort5,
   Bentley_qsort6,
+  Bentley_qsort7,
   java_dual_pivot,
   java_timsort,
 };
@@ -916,8 +942,9 @@ BenchEntry IntBenchEntries[] =
   //{paul_mergesort,   "paul mergesort"},
   //{paul_heapSort,   " paul heapsort"},
   //{Bentley_qsort,    " Bentley qsort"},
-  {Bentley_qsort5,   "Bentley qsort5"},
-  {Bentley_qsort6,   "Bentley qsort6"},
+  {Bentley_qsort5,   " random pivot "},
+  {Bentley_qsort6,   "  median of 3 "},
+  {Bentley_qsort7,   "adaptive pivot"},
   //{java_dual_pivot, "    dual pivot"},
   //{java_timsort,    "       timsort"},
 };
@@ -968,6 +995,9 @@ inline static double run_sort(sortalgo_t runalgo, int * data, int size )
     break;
   case Bentley_qsort6:
     qsort6(data,0,size-1);
+    break;
+  case Bentley_qsort7:
+    qsort7(data,0,size-1);
     break;
   case java_dual_pivot:
     doSort(data, 0,size-1);
