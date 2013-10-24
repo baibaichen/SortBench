@@ -578,76 +578,76 @@ int * tmpArray;
 typedef int DType;
 
 int randint(int l, int u)
-{	
-	return l + (RAND_MAX*rand() + rand()) % (u-l+1);
+{  
+  return l + (RAND_MAX*rand() + rand()) % (u-l+1);
 }
 
 inline void Bentleyswap(DType*x,int i, int j)
-{	
-	DType t = x[i];
-	x[i] = x[j];
-	x[j] = t;
+{  
+  DType t = x[i];
+  x[i] = x[j];
+  x[j] = t;
 }
 void isort3(DType*data,int n)
-{	
-	int i, j;
-	DType t;
-	for (i = 1; i < n; i++) {
-	t = data[i];
-	for (j = i; j > 0 && data[j-1] > t; j--)
-		data[j] = data[j-1];
-	data[j] = t;
-	}
+{  
+  int i, j;
+  DType t;
+  for (i = 1; i < n; i++) {
+  t = data[i];
+  for (j = i; j > 0 && data[j-1] > t; j--)
+    data[j] = data[j-1];
+  data[j] = t;
+  }
 }
 
 /* qsort3 + randomization + isort small subarrays + swap inline */
 int cutoff = 32;
 void qsort4(DType*data, int l, int u)
-{	
-	int i, j;
-	DType t;
-	if (u - l < cutoff)
-		return;
-	Bentleyswap(data,l, randint(l, u));
-	t = data[l];
-	i = l;
-	j = u+1;
-	for (;;) {
-		do i++; while (i <= u && data[i] < t);
-		do j--; while (data[j] > t);
-		if (i > j)
-			break;
-		//temp = data[i]; data[i] = data[j]; data[j] = temp;
-		Bentleyswap(data,i, j);
-	}
-	Bentleyswap(data,l, j);
-	qsort4(data,l, j-1);
-	qsort4(data,j+1, u);
+{  
+  int i, j;
+  DType t;
+  if (u - l < cutoff)
+    return;
+  Bentleyswap(data,l, randint(l, u));
+  t = data[l];
+  i = l;
+  j = u+1;
+  for (;;) {
+    do i++; while (i <= u && data[i] < t);
+    do j--; while (data[j] > t);
+    if (i > j)
+      break;
+    //temp = data[i]; data[i] = data[j]; data[j] = temp;
+    Bentleyswap(data,i, j);
+  }
+  Bentleyswap(data,l, j);
+  qsort4(data,l, j-1);
+  qsort4(data,j+1, u);
 }
 
 void qsort5(DType*data, int l, int u)
-{	
-	int i, j;
-	DType t;
-	if (u - l < cutoff){
-		isort3(data,u-l+1);
-		return;
-	}
-	Bentleyswap(data,l, randint(l, u));
-	t = data[l];
-	i = l;
-	j = u+1;
-	for (;;) {
-		do i++; while (i <= u && data[i] < t);
-		do j--; while (data[j] > t);
-		if (i > j)
-			break;
-		//temp = data[i]; data[i] = data[j]; data[j] = temp;
-		Bentleyswap(data,i, j);
-	}
-	Bentleyswap(data,l, j);
-	qsort5(data,l, j-1);
-	qsort5(data,j+1, u);
+{  
+  int i, j;
+  DType t;
+  if (u - l < cutoff){
+    isort3(data,u-l+1);
+    return;
+  }
+  Bentleyswap(data,l, randint(l, u));
+  t = data[l];
+  i = l;
+  j = u+1;
+  for (;;) {
+    do i++; while (i <= u && data[i] < t);
+    do j--; while (data[j] > t);
+    if (i > j)
+      break;
+    //temp = data[i]; data[i] = data[j]; data[j] = temp;
+    Bentleyswap(data,i, j);
+  }
+  Bentleyswap(data,l, j);
+  qsort5(data,l, j-1);
+  qsort5(data,j+1, u);
 }
 /***************************************
  * END OF Jon Bentley'S IMPLEMENTATION *
@@ -872,79 +872,78 @@ BenchEntry IntBenchEntries[] =
 };
 
 int intcomp(int *x, int *y)
-{	return *x - *y;
+{  return *x - *y;
 }
 
 static void bench(int size, state_t state,int iter=10)
 {
     int * data = (int *) malloc(sizeof(int) * size);
-	for(int i = 0; 
-		i < sizeof(IntBenchEntries)/sizeof(IntBenchEntries[0]); 
-		i++){
-			IntBenchEntries[i].sumOfTimes[state]=0;
-	}
-	int iter_tmp = iter;
-	do{
-		for(int i = 0; 
-			i < sizeof(IntBenchEntries)/sizeof(IntBenchEntries[0]); 
-			i++){
-		  generate_test_datas(data,data+size,state);
+  for(int i = 0; 
+    i < sizeof(IntBenchEntries)/sizeof(IntBenchEntries[0]); 
+    i++){
+      IntBenchEntries[i].sumOfTimes[state]=0;
+  }
+  int iter_tmp = iter;
+  do{
+    for(int i = 0; 
+      i < sizeof(IntBenchEntries)/sizeof(IntBenchEntries[0]); 
+      i++){
+      generate_test_datas(data,data+size,state);
 
-		  cerr<<"run " << IntBenchEntries[i].name;
+      cerr<<"run " << IntBenchEntries[i].name;
 
-		  clock_t t1 = clock();
-		  switch (IntBenchEntries[i].method)
-		  {
-		  case c_qsort:
-			  qsort(data, size, sizeof(int), 
-				   (int (__cdecl *)(const void *,const void *)) intcomp);
-			break;
-		  case stl_sort:
-			std::sort(data,data+size);
-			break;
-		  case stl_stable_sort:
-			std::stable_sort(data,data+size);
-			break;
-		  case stl_heap_sort:
-			make_heap(data,data+size);
-			sort_heap(data,data+size);
-			break;
-		  case paul_qsort:
-			if(state != reversed || size < 1000000)
-			  quickSort(data,size);
-			break;
-		  case paul_mergesort:
-			mergeSort(data,size);
-			break;
-		  case paul_heapSort:
-			heapSort(data,size);
-			break;
-		  case Bentley_qsort:
-			  qsort4(data,0,size-1);
-			  isort3(data,size);
-			break;
-		  case Bentley_qsort5:
-			  qsort5(data,0,size-1);
-			  break;
-		  case java_dual_pivot:
-			doSort(data, 0,size-1);
-			break;
-		  case java_timsort:
-			gfx::timsort(data,data+size);
-			break;
-		  }
-		  clock_t t2 = clock();
+      clock_t t1 = clock();
+      switch (IntBenchEntries[i].method){
+      case c_qsort:
+        qsort(data, size, sizeof(int), 
+          (int (__cdecl *)(const void *,const void *)) intcomp);
+        break;
+      case stl_sort:
+        std::sort(data,data+size);
+        break;
+      case stl_stable_sort:
+        std::stable_sort(data,data+size);
+        break;
+      case stl_heap_sort:
+        make_heap(data,data+size);
+        sort_heap(data,data+size);
+        break;
+      case paul_qsort:
+        if(state != reversed || size < 1000000)
+          quickSort(data,size);
+        break;
+      case paul_mergesort:
+        mergeSort(data,size);
+        break;
+      case paul_heapSort:
+        heapSort(data,size);
+        break;
+      case Bentley_qsort:
+        qsort4(data,0,size-1);
+        isort3(data,size);
+        break;
+      case Bentley_qsort5:
+        qsort5(data,0,size-1);
+        break;
+      case java_dual_pivot:
+        doSort(data, 0,size-1);
+        break;
+      case java_timsort:
+        gfx::timsort(data,data+size);
+        break;
+      }
+      clock_t t2 = clock();
 
-		  IntBenchEntries[i].sumOfTimes[state] += (double)(t2-t1)/CLOCKS_PER_SEC;
+      IntBenchEntries[i].sumOfTimes[state] += (double)(t2-t1)/CLOCKS_PER_SEC;
 
-		  cerr <<", time = " << IntBenchEntries[i].sumOfTimes[state] <<" s \n";
-		}
-	}while (--iter>0);
-	for(int i = 0; 
-		i < sizeof(IntBenchEntries)/sizeof(IntBenchEntries[0]); 
-		i++){
-			IntBenchEntries[i].sumOfTimes[state] /= iter_tmp;
-	}
+      cerr <<", time = " << IntBenchEntries[i].sumOfTimes[state] <<" s \n";
+    }
+  }while (--iter>0);
+  for(int i = 0; 
+    i < sizeof(IntBenchEntries)/sizeof(IntBenchEntries[0]); 
+    i++){
+      IntBenchEntries[i].sumOfTimes[state] /= iter_tmp;
+  }
     free(data);
 }
 int main(int argc, char *argv[])
@@ -987,205 +986,4 @@ int main(int argc, char *argv[])
         <<IntBenchEntries[i].sumOfTimes[unique_key_100]<<'\t'
         <<'\n';
     }
-
-    //temp = (int*)malloc(sizeof(int) * N);
-    //array = (int*)malloc(sizeof(int) * N);
-
-    //srand48(11);
-    //for (i = 0; i < N; ++i) array[i] = (int)lrand48();
-    //t1 = clock();
-    //sort(array, array+N);
-    //t2 = clock();
-    //fprintf(stderr, "STL introsort: %.3lf\n", (double)(t2-t1)/CLOCKS_PER_SEC);
-    //t1 = clock();
-    //sort(array, array+N);
-    //t2 = clock();
-    //fprintf(stderr, "STL introsort (sorted): %.3lf\n", (double)(t2-t1)/CLOCKS_PER_SEC);
-
-    //srand48(11);
-    //for (i = 0; i < N; ++i) array[i] = (int)lrand48();
-    //t1 = clock();
-    //stable_sort(array, array+N);
-    //t2 = clock();
-    //fprintf(stderr, "STL stablesort: %.3lf\n", (double)(t2-t1)/CLOCKS_PER_SEC);
-    //t1 = clock();
-    //stable_sort(array, array+N);
-    //t2 = clock();
-    //fprintf(stderr, "STL stablesort (sorted): %.3lf\n", (double)(t2-t1)/CLOCKS_PER_SEC);
-
-    //srand48(11);
-    //for (i = 0; i < N; ++i) array[i] = (int)lrand48();
-    //t1 = clock();
-    //algo_combsort(N, array);
-    //t2 = clock();
-    //fprintf(stderr, "combsort: %.3lf\n", (double)(t2-t1)/CLOCKS_PER_SEC);
-    //for (i = 0; i < N-1; ++i) {
-    //    if (array[i] > array[i+1]) {
-    //        fprintf(stderr, "Bug in combsort!\n");
-    //        exit(1);
-    //    }
-    //}
-
-    //srand48(11);
-    //for (i = 0; i < N; ++i) array[i] = (int)lrand48();
-    //t1 = clock();
-    //qsort(array, N, sizeof(int), compare);
-    //t2 = clock();
-    //fprintf(stderr, "libc qsort: %.3lf\n", (double)(t2-t1)/CLOCKS_PER_SEC);
-
-    //srand48(11);
-    //for (i = 0; i < N; ++i) array[i] = (int)lrand48();
-    //t1 = clock();
-    //algo_sort(N, array);
-    //t2 = clock();
-    //fprintf(stderr, "my introsort: %.3lf\n", (double)(t2-t1)/CLOCKS_PER_SEC);
-    //for (i = 0; i < N-1; ++i) {
-    //    if (array[i] > array[i+1]) {
-    //        fprintf(stderr, "Bug in intro_sort!\n");
-    //        exit(1);
-    //    }
-    //}
-    //t1 = clock();
-    //algo_sort(N, array);
-    //t2 = clock();
-    //fprintf(stderr, "introsort (sorted): %.3lf\n", (double)(t2-t1)/CLOCKS_PER_SEC);
-
-    //srand48(11);
-    //for (i = 0; i < N; ++i) array[i] = (int)lrand48();
-    //t1 = clock();
-    //algo_mergesort(N, array);
-    //t2 = clock();
-    //fprintf(stderr, "iterative mergesort: %.3lf\n", (double)(t2-t1)/CLOCKS_PER_SEC);
-    //for (i = 0; i < N-1; ++i) {
-    //    if (array[i] > array[i+1]) {
-    //        fprintf(stderr, "Bug in merge_sort!\n");
-    //        exit(1);
-    //    }
-    //}
-    //t1 = clock();
-    //algo_mergesort(N, array);
-    //t2 = clock();
-    //fprintf(stderr, "iterative mergesort (sorted): %.3lf\n", (double)(t2-t1)/CLOCKS_PER_SEC);
-
-    //srand48(11);
-    //for (i = 0; i < N; ++i) array[i] = (int)lrand48();
-    //t1 = clock();
-    //recur_msort(N, array, temp);
-    //t2 = clock();
-    //fprintf(stderr, "recursive mergesort: %.3lf\n", (double)(t2-t1)/CLOCKS_PER_SEC);
-    //for (i = 0; i < N-1; ++i) {
-    //    if (array[i] > array[i+1]) {
-    //        fprintf(stderr, "Bug in recur_sort!\n");
-    //        exit(1);
-    //    }
-    //}
-
-    //srand48(11);
-    //for (i = 0; i < N; ++i) array[i] = (int)lrand48();
-    //t1 = clock();
-    //algo_heap_make(array, N);
-    //algo_heap_sort(array, N);
-    //t2 = clock();
-    //fprintf(stderr, "my heapsort: %.3lf\n", (double)(t2-t1)/CLOCKS_PER_SEC);
-    //for (i = 0; i < N-1; ++i) {
-    //    if (array[i] > array[i+1]) {
-    //        fprintf(stderr, "Bug in heap_sort!\n");
-    //        exit(1);
-    //    }
-    //}
-    //t1 = clock();
-    //algo_heap_make(array, N);
-    //algo_heap_sort(array, N);
-    //t2 = clock();
-    //fprintf(stderr, "heapsort (sorted): %.3lf\n", (double)(t2-t1)/CLOCKS_PER_SEC);
-
-    //srand48(11);
-    //for (i = 0; i < N; ++i) array[i] = (int)lrand48();
-    //t1 = clock();
-    //// icc seems to be able to optimize "algo_sort(N, array,
-    //// compare_int)", but not the following form. Unfortunately, g++-3.3
-    //// only accepts the following form.
-    //algo_sort(N, array, &compare_int);
-    //t2 = clock();
-    //fprintf(stderr, "my isort (func call): %.3lf\n", (double)(t2-t1)/CLOCKS_PER_SEC);
-    //for (i = 0; i < N-1; ++i) {
-    //    if (array[i] > array[i+1]) {
-    //        fprintf(stderr, "Bug in introsort (with func call)!\n");
-    //        exit(1);
-    //    }
-    //}
-
-    //srand48(11);
-    //for (i = 0; i < N; ++i) array[i] = (int)lrand48();
-    //t1 = clock();
-    //algo_sort(N, array, intcmp_t());
-    //t2 = clock();
-    //fprintf(stderr, "my isort (template func): %.3lf\n", (double)(t2-t1)/CLOCKS_PER_SEC);
-    //for (i = 0; i < N-1; ++i) {
-    //    if (array[i] > array[i+1]) {
-    //        fprintf(stderr, "Bug in introsort (with template func)!\n");
-    //        exit(1);
-    //    }
-    //}
-
-    //srand48(11);
-    //for (i = 0; i < N; ++i) array[i] = (int)lrand48();
-    //t1 = clock();
-    //heapSort(array, N);
-    //t2 = clock();
-    //fprintf(stderr, "Paul's heapsort: %.3lf\n", (double)(t2-t1)/CLOCKS_PER_SEC);
-    //for (i = 0; i < N-1; ++i) {
-    //    if (array[i] > array[i+1]) {
-    //        fprintf(stderr, "Bug in intro_sort!\n");
-    //        exit(1);
-    //    }
-    //}
-
-    //srand48(11);
-    //for (i = 0; i < N; ++i) array[i] = (int)lrand48();
-    //t1 = clock();
-    //quickSort(array, N);
-    //t2 = clock();
-    //fprintf(stderr, "Paul's quicksort: %.3lf\n", (double)(t2-t1)/CLOCKS_PER_SEC);
-    //for (i = 0; i < N-1; ++i) {
-    //    if (array[i] > array[i+1]) {
-    //        fprintf(stderr, "Bug in intro_sort!\n");
-    //        exit(1);
-    //    }
-    //}
-
-    //srand48(11);
-    //for (i = 0; i < N; ++i) array[i] = (int)lrand48();
-    //t1 = clock();
-    //mergeSort(array, N);
-    //t2 = clock();
-    //fprintf(stderr, "Paul's mergesort: %.3lf\n", (double)(t2-t1)/CLOCKS_PER_SEC);
-    //for (i = 0; i < N-1; ++i) {
-    //    if (array[i] > array[i+1]) {
-    //        fprintf(stderr, "Bug in intro_sort!\n");
-    //        exit(1);
-    //    }
-    //}
-
-    //srand48(11);
-    //for (i = 0; i < N; ++i) array[i] = (int)lrand48();
-    //t1 = clock();
-    //doSort(array, 0,N-1);
-    //t2 = clock();
-    //fprintf(stderr, "java's dual pivot sort: %.3lf\n", (double)(t2-t1)/CLOCKS_PER_SEC);
-    //for (i = 0; i < N-1; ++i) {
-    //  if (array[i] > array[i+1]) {
-    //    fprintf(stderr, "Bug in intro_sort!\n");
-    //    exit(1);
-    //  }
-    //}
-
-    //t1 = clock();
-    //doSort(array, 0,N-1);
-    //t2 = clock();
-    //fprintf(stderr, "java's dual pivot sort (sorted): %.3lf\n", (double)(t2-t1)/CLOCKS_PER_SEC);
-
-
-    //free(array); free(temp);
-    //return 0;
 }
