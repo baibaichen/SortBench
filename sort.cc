@@ -837,13 +837,13 @@ struct DistEntry
 };
 DistEntry AllDistEntries[] =
 {
-  {sorted,             "sorted data"},
-  {randomized,         "randomized"},
-  {reversed,           "reversed sorted"},
-  {partially_sorted_0, "partially sorted[10]"},
+  {sorted,             "           sorted data"},
+  {randomized,         "            randomized"},
+  {reversed,           "       reversed sorted"},
+  {partially_sorted_0, "  partially sorted[10]"},
   {partially_sorted_1, "partially sorted[1000]"},
-  {unique_key_100000,  "100000 unique key"},
-  {unique_key_100,     "100 unique key"},
+  {unique_key_100000,  "     100000 unique key"},
+  {unique_key_100,     "        100 unique key"},
 };
 
 template <typename _RanIt>
@@ -935,17 +935,17 @@ struct BenchEntry
 BenchEntry IntBenchEntries[] =
 {
   //{c_qsort,         "       c qsort"},
-  //{stl_sort,        "      c++ sort"},
+  {stl_sort,        "      c++ sort"},
   //{stl_stable_sort, "c++ stablesort"},
   //{stl_heap_sort,   "  c++ heapsort"},
-  //{paul_qsort,      "    paul qsort"},
+  {paul_qsort,       "    paul qsort"},
   //{paul_mergesort,   "paul mergesort"},
   //{paul_heapSort,   " paul heapsort"},
   //{Bentley_qsort,    " Bentley qsort"},
   {Bentley_qsort5,   " random pivot "},
   {Bentley_qsort6,   "  median of 3 "},
   {Bentley_qsort7,   "adaptive pivot"},
-  //{java_dual_pivot, "    dual pivot"},
+  {java_dual_pivot,  "    dual pivot"},
   //{java_timsort,    "       timsort"},
 };
 
@@ -1023,15 +1023,18 @@ static void bench(int iter,int size)
     for (int iter_i = 0 ; iter_i < iter; iter_i++)
       for(int i = 0; i < SIZEOF_ARRAY(IntBenchEntries);i++){
 
-        cerr << "run " << ++curentRun << '/' << allRuns << '\n';
+        cerr << "run " << AllDistEntries[dist_i].name
+             << '/'    << IntBenchEntries[i].name 
+             << " : "  << ++curentRun << '/' << allRuns << '\n';
 
         dist_t dist = AllDistEntries[dist_i].dist;
         generate_test_datas(data,data+size,dist);
         sortalgo_t runalgo = IntBenchEntries[i].algo;
-        if (runalgo == paul_qsort &&
+        if ( (runalgo == paul_qsort ||runalgo ==  Bentley_qsort6 )&&
               dist == reversed   &&
-               size >= 1000000){
-          //paul's quick sort is bad for reverse sorted data sequence.
+               size >= 0){
+          //paul's quick sort is quadric for reverse sorted data sequence.
+          // median of 3 looks has issue on reversed sorted data sequence
         }else
           IntBenchEntries[i].timesPerRun[dist][iter_i] = 
             run_sort(runalgo, data, size);
@@ -1051,7 +1054,8 @@ int main(int argc, char *argv[])
 
     bench(Iter,N);
 
-    cout<< "  size    \t" 
+    if (N == 1000000)
+      cout<< "  size    \t" 
         << " method   \t" 
         << " sorted   \t" 
         << "randomized\t" 
