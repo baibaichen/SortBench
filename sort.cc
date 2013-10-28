@@ -6,6 +6,7 @@
 #include <functional>
 #include <iostream>
 
+#include "quicksort.h"
 #include "sort.h"
 #include "timsort.h"
 #include "drand48.h"
@@ -837,13 +838,13 @@ struct DistEntry
 };
 DistEntry AllDistEntries[] =
 {
-  {sorted,             "           sorted data"},
-  {randomized,         "            randomized"},
+  //{sorted,             "           sorted data"},
+  //{randomized,         "            randomized"},
   {reversed,           "       reversed sorted"},
-  {partially_sorted_0, "  partially sorted[10]"},
-  {partially_sorted_1, "partially sorted[1000]"},
-  {unique_key_100000,  "     100000 unique key"},
-  {unique_key_100,     "        100 unique key"},
+  //{partially_sorted_0, "  partially sorted[10]"},
+  //{partially_sorted_1, "partially sorted[1000]"},
+  //{unique_key_100000,  "     100000 unique key"},
+  //{unique_key_100,     "        100 unique key"},
 };
 
 template <typename _RanIt>
@@ -922,6 +923,8 @@ enum sortalgo_t
   Bentley_qsort7,
   java_dual_pivot,
   java_timsort,
+
+  Template_QSort,
 };
 
 const int maxIter = 100;
@@ -935,18 +938,19 @@ struct BenchEntry
 BenchEntry IntBenchEntries[] =
 {
   //{c_qsort,         "       c qsort"},
-  {stl_sort,        "      c++ sort"},
+  //{stl_sort,        "      c++ sort"},
   //{stl_stable_sort, "c++ stablesort"},
   //{stl_heap_sort,   "  c++ heapsort"},
-  {paul_qsort,       "    paul qsort"},
+  //{paul_qsort,       "    paul qsort"},
   //{paul_mergesort,   "paul mergesort"},
   //{paul_heapSort,   " paul heapsort"},
   //{Bentley_qsort,    " Bentley qsort"},
-  {Bentley_qsort5,   " random pivot "},
-  {Bentley_qsort6,   "  median of 3 "},
+  //{Bentley_qsort5,   " random pivot "},
+  //{Bentley_qsort6,   "  median of 3 "},
   {Bentley_qsort7,   "adaptive pivot"},
-  {java_dual_pivot,  "    dual pivot"},
+  //{java_dual_pivot,  "    dual pivot"},
   //{java_timsort,    "       timsort"},
+  {Template_QSort,   " template sort"},
 };
 
 #ifndef SIZEOF_ARRAY
@@ -1005,6 +1009,9 @@ inline static double run_sort(sortalgo_t runalgo, int * data, int size )
   case java_timsort:
     gfx::timsort(data,data+size);
     break;
+  case Template_QSort:
+    SortBench::QuickSort(data,data+size);
+    break;
   }
   clock_t t2 = clock();
   return (double)(t2-t1)/CLOCKS_PER_SEC;
@@ -1032,7 +1039,7 @@ static void bench(int iter,int size)
         sortalgo_t runalgo = IntBenchEntries[i].algo;
         if ( (runalgo == paul_qsort ||runalgo ==  Bentley_qsort6 )&&
               dist == reversed   &&
-               size >= 0){
+               size >= 1000000){
           //paul's quick sort is quadric for reverse sorted data sequence.
           // median of 3 looks has issue on reversed sorted data sequence
         }else
