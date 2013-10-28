@@ -631,7 +631,7 @@ void qsort5(DType*data, int l, int u)
   int i, j;
   DType t;
   if (u - l < cutoff){
-    isort3(data,u-l+1);
+    isort3(data+l,u-l+1);
     return;
   }
   Bentleyswap(data,l, randint(l, u));
@@ -703,7 +703,7 @@ void qsort6(DType*data, int l, int u)
   int i, j;
   DType t;
   if (u - l < cutoff){
-    isort3(data,u-l+1);
+    isort3(data+l,u-l+1);
     return;
   }
   int  Mid = l + (u + 1 - l) / 2;  // sort median to _Mid
@@ -728,10 +728,13 @@ void qsort7(DType*data, int l, int u)
 {  
   int i, j;
   DType t;
+  
   if (u - l < cutoff){
-    isort3(data,u-l+1);
+    isort3(data+l,u-l+1);
     return;
   }
+
+  //if (u <= l){return;}
   int  Mid = l + (u + 1 - l) / 2;  // sort median to _Mid
   DType *pm = Median(data+l, data+Mid, data+u);
   t = *pm; *pm=data[l]; data[l]=t; //swap
@@ -748,6 +751,41 @@ void qsort7(DType*data, int l, int u)
   Bentleyswap(data,l, j);
   qsort7(data,l, j-1);
   qsort7(data,j+1, u);
+}
+
+
+void qsort8(DType*data, int l, int r)
+{  
+  DType t;
+  if (r - l < cutoff){
+    isort3(data+l,r-l+1);
+    return;
+  }
+  //if (r <= l){return;}
+  int  Mid = l + (r + 1 - l) / 2;  // sort median to _Mid
+  DType *pm = Median(data+l, data+Mid, data+r);
+  t = *pm; *pm=data[r]; data[r]=t; //swap
+
+  int i = l-1, j = r, p = l-1, q = r;
+
+  for (;;){
+    
+    while (data[++i] < t);
+    while (t < data[--j]) if (j == l) break;
+
+    if(i>=j) break;
+    Bentleyswap(data,i, j);
+
+    if (data[i] == t) { p++; Bentleyswap(data, p, i); }
+    if (t == data[j]) { q--; Bentleyswap(data,j, q); }
+  }
+  Bentleyswap(data,i, r);   j = i-1; i = i+1;
+
+  for (int k = l;   k < p; k++, j--) Bentleyswap(data,k, j);
+  for (int k = r-1; k > q; k--, i++) Bentleyswap(data,i, k);
+
+  qsort8(data,l, j);
+  qsort8(data,i, r);
 }
 
 /***************************************
@@ -838,13 +876,13 @@ struct DistEntry
 };
 DistEntry AllDistEntries[] =
 {
-  //{sorted,             "           sorted data"},
-  //{randomized,         "            randomized"},
+  {sorted,             "           sorted data"},
+  {randomized,         "            randomized"},
   {reversed,           "       reversed sorted"},
-  //{partially_sorted_0, "  partially sorted[10]"},
-  //{partially_sorted_1, "partially sorted[1000]"},
-  //{unique_key_100000,  "     100000 unique key"},
-  //{unique_key_100,     "        100 unique key"},
+  {partially_sorted_0, "  partially sorted[10]"},
+  {partially_sorted_1, "partially sorted[1000]"},
+  {unique_key_100000,  "     100000 unique key"},
+  {unique_key_100,     "        100 unique key"},
 };
 
 template <typename _RanIt>
@@ -921,6 +959,7 @@ enum sortalgo_t
   Bentley_qsort5,
   Bentley_qsort6,
   Bentley_qsort7,
+  Bentley_qsort8,
   java_dual_pivot,
   java_timsort,
 
@@ -945,9 +984,10 @@ BenchEntry IntBenchEntries[] =
   //{paul_mergesort,   "paul mergesort"},
   //{paul_heapSort,   " paul heapsort"},
   //{Bentley_qsort,    " Bentley qsort"},
-  //{Bentley_qsort5,   " random pivot "},
-  //{Bentley_qsort6,   "  median of 3 "},
+  {Bentley_qsort5,   " random pivot "},
+  {Bentley_qsort6,   "  median of 3 "},
   {Bentley_qsort7,   "adaptive pivot"},
+  {Bentley_qsort8,   "3way partition"},
   //{java_dual_pivot,  "    dual pivot"},
   //{java_timsort,    "       timsort"},
   {Template_QSort,   " template sort"},
@@ -1003,6 +1043,9 @@ inline static double run_sort(sortalgo_t runalgo, int * data, int size )
   case Bentley_qsort7:
     qsort7(data,0,size-1);
     break;
+  case Bentley_qsort8:
+    qsort8(data,0,size-1);
+    break;
   case java_dual_pivot:
     doSort(data, 0,size-1);
     break;
@@ -1020,33 +1063,55 @@ inline static double run_sort(sortalgo_t runalgo, int * data, int size )
 static void bench(int iter,int size)
 {
   int * data = (int *) malloc(sizeof(int) * size);
+  int * copied = (int *) malloc(sizeof(int) * size);
   int iter_tmp = iter;
 
   const int allRuns = iter * 
                       SIZEOF_ARRAY(IntBenchEntries) * 
                       SIZEOF_ARRAY(AllDistEntries);
   int curentRun = 0;
-  for (int dist_i=0; dist_i < SIZEOF_ARRAY(AllDistEntries);dist_i++)
+  for (int dist_i=0; dist_i < SIZEOF_ARRAY(AllDistEntries);dist_i++){
+
+    dist_t dist = AllDistEntries[dist_i].dist;
+    generate_test_datas(copied,copied+size,dist);
+
     for (int iter_i = 0 ; iter_i < iter; iter_i++)
       for(int i = 0; i < SIZEOF_ARRAY(IntBenchEntries);i++){
-
+        std::copy(copied,copied+size,data);
         cerr << "run " << AllDistEntries[dist_i].name
              << '/'    << IntBenchEntries[i].name 
-             << " : "  << ++curentRun << '/' << allRuns << '\n';
-
-        dist_t dist = AllDistEntries[dist_i].dist;
-        generate_test_datas(data,data+size,dist);
+             << " : "  << ++curentRun << '/' << allRuns 
+             << " [";
         sortalgo_t runalgo = IntBenchEntries[i].algo;
         if ( (runalgo == paul_qsort ||runalgo ==  Bentley_qsort6 )&&
               dist == reversed   &&
                size >= 1000000){
           //paul's quick sort is quadric for reverse sorted data sequence.
           // median of 3 looks has issue on reversed sorted data sequence
-        }else
+         cerr<<"-]";
+        }else{
           IntBenchEntries[i].timesPerRun[dist][iter_i] = 
             run_sort(runalgo, data, size);
+
+          bool IsOK = true;
+          int i;
+          for (i = 0; i < size-1; i++){
+            if (data[i] > data[i+1]){
+              IsOK = false;
+              break;
+            }
+          }
+          if(IsOK)
+            cerr<<"OK]";
+          else
+            cerr<<"FAIL at "<<i<<"]";
+        }
+        cerr << '\n';
     }
+
+  }
   free(data);
+  free(copied);
 }
 int main(int argc, char *argv[])
 {
