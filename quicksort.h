@@ -42,10 +42,49 @@ namespace SortBench{
 
     }
   }
+
+  template<class _BidIt,
+  class _Ty> inline
+    void _Insertion_sort1(_BidIt _First, _BidIt _Last, _Ty *)
+  {	// insertion sort [_First, _Last), using operator<
+    if (_First != _Last)
+      for (_BidIt _Next = _First; ++_Next != _Last; )
+      {	// order next element
+        _BidIt _Next1 = _Next;
+        _Ty _Val = std::move(*_Next);
+
+        if (_Val < *_First)
+        {	// found new earliest element, move to front
+          std::move_backward(_First, _Next, ++_Next1);
+          *_First = std::move(_Val);
+        }
+        else
+        {	// look for insertion point after first
+          for (_BidIt _First1 = _Next1;_Val <  *--_First1;_Next1 = _First1)
+            *_Next1 = std::move(*_First1);	// move hole down
+          *_Next1 = std::move(_Val);	// insert element in hole
+        }
+      }
+  }
+
+  template<class _Iter> inline
+  typename std::iterator_traits<_Iter>::value_type *_Val_type(_Iter)
+  {	// return value type from arbitrary argument
+    return (0);
+  }
+
+  template<class _BidIt> inline
+  void _Insertion_sort(_BidIt _First, _BidIt _Last)
+  {	// insertion sort [_First, _Last), using operator<
+    _Insertion_sort1(_First, _Last, _Val_type(_First));
+  }
+
+
   template<class _RanIt> inline
   void QuickSort(_RanIt _First, _RanIt _Last)
   {	// order [_First, _Last), using operator<
     typedef iterator_traits<_RanIt>::reference reference_t;
+    typedef iterator_traits<_RanIt>::value_type value_t;
 
     if( _Last - _First < cutoff )
       return Insertion_sort(_First,_Last);
@@ -54,7 +93,7 @@ namespace SortBench{
     _RanIt pm = Median(_First, Mid, _Last-1);
     std::iter_swap(_First,pm);
 
-    const reference_t tmp = *_First;
+    const value_t tmp = *_First;
 
     _RanIt i = _First;
     _RanIt j = _Last;
