@@ -110,4 +110,164 @@ namespace SortBench{
     QuickSort(j+1,_Last);
   }
 }
+
+namespace SortBench_STLPORT{
+
+  enum { _S_threshold = 32 };
+
+  template<typename _Tp>
+  inline const _Tp&
+  __median(const _Tp& __a, const _Tp& __b, const _Tp& __c)
+  {
+    // concept requirements
+    if (__a < __b)
+      if (__b < __c)
+        return __b;
+      else if (__a < __c)
+        return __c;
+      else
+        return __a;
+    else if (__a < __c)
+      return __a;
+    else if (__b < __c)
+      return __c;
+    else
+      return __b;
+  }
+  
+  /// This is a helper function...
+  template<typename _RandomAccessIterator, typename _Tp>
+  _RandomAccessIterator 
+  __unguarded_partition(_RandomAccessIterator __first,
+                        _RandomAccessIterator __last, 
+                        _Tp __pivot)
+  {
+    while (true) {
+      while (*__first < __pivot)
+        ++__first;
+      --__last;
+      while (__pivot < *__last)
+        --__last;
+      if (!(__first < __last))
+        return __first;
+      std::iter_swap(__first, __last);
+      ++__first;
+    }
+  }
+  
+  template<typename _RandomAccessIterator, typename _Size>
+  void __introsort_loop(_RandomAccessIterator __first,
+                        _RandomAccessIterator __last,
+                        _Size __depth_limit)
+  {
+    typedef typename iterator_traits<_RandomAccessIterator>::value_type
+      _ValueType;
+
+    while (__last - __first > int(_S_threshold)){
+      if (__depth_limit == 0){
+        std::partial_sort(__first, __last, __last);
+        return;
+      }
+      --__depth_limit;
+
+      _RandomAccessIterator __cut =
+        __unguarded_partition(__first, __last,
+                              _ValueType(__median(*__first,
+                                                  *(__first+ (__last- __first)/ 2),
+                                                  *(__last- 1))));
+      __introsort_loop(__cut, __last, __depth_limit);
+      __last = __cut;
+    }
+  }
+
+  /// This is a helper function for the sort routines.  Precondition: __n > 0.
+  template<typename _Size>
+  inline _Size
+  __lg(_Size __n)
+  {
+    _Size __k;
+    for (__k = 0; __n != 0; __n >>= 1)
+      ++__k;
+    return __k - 1;
+  }
+
+  /// This is a helper function for the sort routine.
+  template<typename _RandomAccessIterator, typename _Tp>
+  void __unguarded_linear_insert(_RandomAccessIterator __last, _Tp __val)
+  {
+    _RandomAccessIterator __next = __last;
+    --__next;
+    while (__val < *__next)
+    {
+      *__last = *__next;
+      __last = __next;
+      --__next;
+    }
+    *__last = __val;
+  }
+
+  template<typename _RandomAccessIterator>
+  void
+  __insertion_sort(_RandomAccessIterator __first,
+                   _RandomAccessIterator __last)
+  {
+    if (__first == __last)
+      return;
+
+    for (_RandomAccessIterator __i = __first + 1; __i != __last; ++__i)
+    {
+      typename iterator_traits<_RandomAccessIterator>::value_type __val = *__i;
+
+      if (__val < *__first)
+      {
+        std::copy_backward(__first, __i, __i + 1);
+        *__first = __val;
+      }
+      else
+        __unguarded_linear_insert(__i, __val);
+    }
+  }
+  
+  /// This is a helper function for the sort routine.
+  template<typename _RandomAccessIterator>
+  inline void
+  __unguarded_insertion_sort(_RandomAccessIterator __first,
+                             _RandomAccessIterator __last)
+  {
+    typedef typename iterator_traits<_RandomAccessIterator>::value_type
+      _ValueType;
+
+    for (_RandomAccessIterator __i = __first; __i != __last; ++__i)
+          __unguarded_linear_insert(__i, _ValueType(*__i));
+  }
+
+  /// This is a helper function for the sort routine.
+  template<typename _RandomAccessIterator>
+  void
+  __final_insertion_sort(_RandomAccessIterator __first,
+                         _RandomAccessIterator __last)
+  {
+    if (__last - __first > int(_S_threshold))
+    {
+      __insertion_sort(__first, __first + int(_S_threshold));
+      __unguarded_insertion_sort(__first + int(_S_threshold), __last);
+    }
+    else
+      __insertion_sort(__first, __last);
+  }
+
+  template<typename _RandomAccessIterator>
+  inline void
+  sort(_RandomAccessIterator __first, _RandomAccessIterator __last)
+  {
+    typedef typename iterator_traits<_RandomAccessIterator>::value_type
+      _ValueType;
+
+    if (__first != __last)
+    {
+      __introsort_loop(__first, __last,__lg(__last - __first) * 2);
+      __final_insertion_sort(__first, __last);
+    }
+  }
+}
 #endif // _QUICKSORT_H__

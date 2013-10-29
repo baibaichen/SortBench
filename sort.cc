@@ -876,13 +876,13 @@ struct DistEntry
 };
 DistEntry AllDistEntries[] =
 {
-  {sorted,             "           sorted data"},
-  {randomized,         "            randomized"},
-  {reversed,           "       reversed sorted"},
-  {partially_sorted_0, "  partially sorted[10]"},
-  {partially_sorted_1, "partially sorted[1000]"},
-  {unique_key_100000,  "     100000 unique key"},
-  {unique_key_100,     "        100 unique key"},
+  {sorted,             "     sorted"},
+  {randomized,         "     random"},
+  {reversed,           "   R sorted"},
+  {partially_sorted_0, "   sort[10]"},
+  {partially_sorted_1, " sort[1000]"},
+  {unique_key_100000,  "10^5 U key"},
+  {unique_key_100,     "10^2 U key"},
 };
 
 template <typename _RanIt>
@@ -964,6 +964,7 @@ enum sortalgo_t
   java_timsort,
 
   Template_QSort,
+  STLPort_Sort,
 };
 
 const int maxIter = 100;
@@ -983,14 +984,15 @@ BenchEntry IntBenchEntries[] =
   //{paul_qsort,       "    paul qsort"},
   //{paul_mergesort,   "paul mergesort"},
   //{paul_heapSort,   " paul heapsort"},
-  //{Bentley_qsort,    " Bentley qsort"},
-  {Bentley_qsort5,   " random pivot "},
+  //{Bentley_qsort,    " single i sort"},
+  //{Bentley_qsort5,   " random pivot "},
   {Bentley_qsort6,   "  median of 3 "},
   {Bentley_qsort7,   "adaptive pivot"},
   {Bentley_qsort8,   "3way partition"},
   //{java_dual_pivot,  "    dual pivot"},
-  //{java_timsort,    "       timsort"},
   {Template_QSort,   " template sort"},
+  {STLPort_Sort,    " stl port sort"},
+  //{java_timsort,    "       timsort"},
 };
 
 #ifndef SIZEOF_ARRAY
@@ -1055,6 +1057,9 @@ inline static double run_sort(sortalgo_t runalgo, int * data, int size )
   case Template_QSort:
     SortBench::QuickSort(data,data+size);
     break;
+  case STLPort_Sort:
+    SortBench_STLPORT::sort(data,data+size);
+    break;
   }
   clock_t t2 = clock();
   return (double)(t2-t1)/CLOCKS_PER_SEC;
@@ -1077,7 +1082,6 @@ static void bench(int iter,int size)
 
     for (int iter_i = 0 ; iter_i < iter; iter_i++)
       for(int i = 0; i < SIZEOF_ARRAY(IntBenchEntries);i++){
-        std::copy(copied,copied+size,data);
         cerr << "run " << AllDistEntries[dist_i].name
              << '/'    << IntBenchEntries[i].name 
              << " : "  << ++curentRun << '/' << allRuns 
@@ -1090,6 +1094,7 @@ static void bench(int iter,int size)
           // median of 3 looks has issue on reversed sorted data sequence
          cerr<<"-]";
         }else{
+          std::copy(copied,copied+size,data);
           IntBenchEntries[i].timesPerRun[dist][iter_i] = 
             run_sort(runalgo, data, size);
 
@@ -1121,34 +1126,26 @@ int main(int argc, char *argv[])
       fprintf(stderr, "Usage: %s [%d] [%d]\n", argv[0], N,Iter);
     if (argc > 1)    N = atoi(argv[1]);
     if (argc > 2) Iter = atoi(argv[2]);
-    
+
     Iter = min(Iter,maxIter);
 
     bench(Iter,N);
 
-    if (N == 1000000)
-      cout<< "  size    \t" 
-        << " method   \t" 
-        << " sorted   \t" 
-        << "randomized\t" 
-        << "reversed  \t"
-        << "partially sorted 0\t"
-        << "partially sorted 1\t"
-        << "unique key 100000 0\t"
-        << "unique key 1000 1\t"
-        <<"\n";
+    if (N == 1000000){
+      cout<< "    size    \t" 
+          << "   method   \t" ;
+      for (int k =0; k < SIZEOF_ARRAY(AllDistEntries);k++)
+          cout<<AllDistEntries[k].name << '\t';
+      cout <<"\n";
+    }
   
     for (int j = 0; j < Iter;j++)
       for(int i = 0;i < SIZEOF_ARRAY(IntBenchEntries);i++){
-        cout<<N<<'\t'
-          <<IntBenchEntries[i].name<<'\t'
-          <<IntBenchEntries[i].timesPerRun[sorted][j]<<'\t'
-          <<IntBenchEntries[i].timesPerRun[randomized][j]<<'\t'
-          <<IntBenchEntries[i].timesPerRun[reversed][j]<<'\t'
-          <<IntBenchEntries[i].timesPerRun[partially_sorted_0][j]<<'\t'
-          <<IntBenchEntries[i].timesPerRun[partially_sorted_1][j]<<'\t'
-          <<IntBenchEntries[i].timesPerRun[unique_key_100000][j]<<'\t'
-          <<IntBenchEntries[i].timesPerRun[unique_key_100][j]<<'\t'
-          <<'\n';
+        cout<<N<<"    \t"<<IntBenchEntries[i].name<<'\t';
+        for (int k =0; k < SIZEOF_ARRAY(AllDistEntries);k++) {
+          dist_t dist =  AllDistEntries[k].dist;
+          cout<<"    "<<IntBenchEntries[i].timesPerRun[dist][j] << '\t';
+        }
+        cout <<"\n";
     }
 }
