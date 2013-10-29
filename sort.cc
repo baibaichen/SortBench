@@ -921,9 +921,9 @@ void generate_test_datas(_RanIt _First, _RanIt _Last, dist_t dist)
       bool toggle = true;
       for(_RanIt i=_First; i < _Last; i+=10){
         if(toggle)
-          std::stable_sort(i, i+10, lt);
+          std::stable_sort(i, std::min(i+10,_Last), lt);
         else
-          std::stable_sort(i, i+10, gt);
+          std::stable_sort(i, std::min(i+10,_Last), gt);
         toggle = !toggle;
       }
     }
@@ -934,9 +934,9 @@ void generate_test_datas(_RanIt _First, _RanIt _Last, dist_t dist)
       bool toggle = true;
       for(_RanIt i=_First; i < _Last; i+=1000){
         if(toggle)
-          std::stable_sort(i, i+1000, lt);
+          std::stable_sort(i, std::min(i+1000,_Last), lt);
         else
-          std::stable_sort(i, i+1000, gt);
+          std::stable_sort(i, std::min(i+1000,_Last), gt);
         toggle = !toggle;
       }
     }
@@ -985,10 +985,10 @@ BenchEntry IntBenchEntries[] =
   //{paul_mergesort,   "paul mergesort"},
   //{paul_heapSort,   " paul heapsort"},
   //{Bentley_qsort,    " single i sort"},
-  //{Bentley_qsort5,   " random pivot "},
+  {Bentley_qsort5,   " random pivot "},
   {Bentley_qsort6,   "  median of 3 "},
   {Bentley_qsort7,   "adaptive pivot"},
-  {Bentley_qsort8,   "3way partition"},
+  //{Bentley_qsort8,   "3way partition"},
   //{java_dual_pivot,  "    dual pivot"},
   {Template_QSort,   " template sort"},
   {STLPort_Sort,    " stl port sort"},
@@ -1144,7 +1144,7 @@ int main(int argc, char *argv[])
         cout<<N<<"    \t"<<IntBenchEntries[i].name<<'\t';
         for (int k =0; k < SIZEOF_ARRAY(AllDistEntries);k++) {
           dist_t dist =  AllDistEntries[k].dist;
-          cout<<"    "<<IntBenchEntries[i].timesPerRun[dist][j] << '\t';
+          cout<<IntBenchEntries[i].timesPerRun[dist][j] << '\t';
         }
         cout <<"\n";
     }
