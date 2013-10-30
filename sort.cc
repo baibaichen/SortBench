@@ -726,19 +726,15 @@ void qsort6(DType*data, int l, int u)
   qsort6(data,j+1, u);
 }
 
-void qsort6_1(DType*data, int l, int u)
-{  
+void qsort6_1_0(DType*data, int l, int u)
+{  //median of 3, without guard, final insertion sort
   if (u - l < cutoff){
-    isort3(data+l,u-l+1);
+   //isort3(data+l,u-l+1);
     return;
   }
-  int  Mid = l + (u + 1 - l) / 2;  // sort median to _Mid
+  int  Mid = l + (u + 1 - l) / 2; 
   DType *pm = Med3(data+l, data+Mid, data+u);
-  DType t = *pm; //*pm=data[l]; data[l]=t; //swap
-
-  //DType t = SortBench_STLPORT::__median(data[l],data[Mid],data[u]);
-  /*DType* cut = SortBench_STLPORT::__unguarded_partition(data+l,data+u+1,t);
-  int i = cut-data;*/
+  DType t = *pm; 
 
   ////3
   int i = l, j = u+1;
@@ -752,10 +748,64 @@ void qsort6_1(DType*data, int l, int u)
     Bentleyswap(data,i, j);
     ++i;
   }
-
-  qsort6_1(data,l, i-1);
-  qsort6_1(data,i, u);
+  qsort6_1_0(data,l, i-1);
+  qsort6_1_0(data,i, u);
 }
+
+void qsort6_1_1(DType*data, int l, int u)
+{ //median of 3, without guard, final insertion sort
+  // using SortBench_STLPORT::__median
+  if (u - l < cutoff)
+    return;
+  
+  int  Mid = l + (u + 1 - l) / 2;  // sort median to _Mid
+
+  DType t = SortBench_STLPORT::__median(data[l],data[Mid],data[u]);
+
+  int i = l, j = u+1;
+  for (;;)
+  {
+    while (data[i] < t) ++i;
+    --j;
+    while (t < data[j]) --j;
+    if(i>=j)
+      break;
+    Bentleyswap(data,i, j);
+    ++i;
+  }
+  qsort6_1_1(data,l, i-1);
+  qsort6_1_1(data,i, u);
+}
+
+void qsort6_1_2(DType*data, int l, int u)
+{  //median of 3, without guard, final insertion sort
+   //using SortBench_STLPORT::__unguarded_partition
+  if (u - l < cutoff)
+    return;
+  
+  int  Mid = l + (u + 1 - l) / 2; 
+  DType t = *(Med3(data+l, data+Mid, data+u)); 
+  DType* cut = SortBench_STLPORT::__unguarded_partition(data+l,data+u+1,t);
+  int i = cut-data;
+  qsort6_1_2(data,l, i-1);
+  qsort6_1_2(data,i, u);
+}
+
+void qsort6_1_3(DType*data, int l, int u)
+{ //median of 3, without guard, final insertion sort
+  // using SortBench_STLPORT::__median
+  // using SortBench_STLPORT::__unguarded_partition
+  if (u - l < cutoff)
+    return;
+  
+  int  Mid = l + (u + 1 - l) / 2;  // sort median to _Mid
+  DType t = SortBench_STLPORT::__median(data[l],data[Mid],data[u]);
+  DType* cut = SortBench_STLPORT::__unguarded_partition(data+l,data+u+1,t);
+  int i = cut-data;
+  qsort6_1_3(data,l, i-1);
+  qsort6_1_3(data,i, u);
+}
+
 
 void qsort7(DType*data, int l, int u)
 {  
@@ -909,12 +959,12 @@ struct DistEntry
 };
 DistEntry AllDistEntries[] =
 {
-  {sorted,             "     sorted"},
-  {randomized,         "     random"},
-  {reversed,           "   R sorted"},
-  {partially_sorted_0, "   sort[10]"},
-  {partially_sorted_1, " sort[1000]"},
-  {unique_key_100000,  "10^5 U key"},
+  {sorted,             "    sorted"},
+  {randomized,         "    random"},
+  //{reversed,           "  R sorted"},
+  //{partially_sorted_0, "  sort[10]"},
+  //{partially_sorted_1, "sort[1000]"},
+  //{unique_key_100000,  "10^5 U key"},
   {unique_key_100,     "10^2 U key"},
 };
 
@@ -991,7 +1041,10 @@ enum sortalgo_t
   Bentley_qsort,
   Bentley_qsort5,
   Bentley_qsort6,
-  Bentley_qsort6_1,
+  Bentley_qsort6_1_0,
+  Bentley_qsort6_1_1,
+  Bentley_qsort6_1_2,
+  Bentley_qsort6_1_3,
   Bentley_qsort7,
   Bentley_qsort8,
   java_dual_pivot,
@@ -1021,14 +1074,17 @@ BenchEntry IntBenchEntries[] =
   //{paul_heapSort,   " paul heapsort"},
   //{Bentley_qsort,    " single i sort"},
   //{Bentley_qsort5,   " random pivot "},
-  //{Bentley_qsort6,   "  median of 3 "},
-  //{Bentley_qsort6_1, "median of 3__2"},
+  {Bentley_qsort6,   "  median of 3 "},
+  {Bentley_qsort6_1_0, "median of 3__0"},
+  {Bentley_qsort6_1_1, "median of 3__1"},
+  {Bentley_qsort6_1_2, "median of 3__2"},
+  {Bentley_qsort6_1_3, "median of 3__3"},
   //{Bentley_qsort7,   "adaptive pivot"},
   //{Bentley_qsort8,   "3way partition"},
   //{java_dual_pivot,  "    dual pivot"},
   //{Template_QSort,   " template sort"},
-  {Template_DQSort,   "template Dsort"},
-  //{STLPort_Sort,    " stl port sort"},
+  //{Template_DQSort,   "template Dsort"},
+  {STLPort_Sort,    " stl port sort"},
   //{java_timsort,    "       timsort"},
 };
 
@@ -1079,10 +1135,21 @@ inline static double run_sort(sortalgo_t runalgo, int * data, int size )
   case Bentley_qsort6:
     qsort6(data,0,size-1);
     break;
-  case Bentley_qsort6_1:
-    qsort6_1(data,0,size-1);
-    //SortBench_STLPORT::__final_insertion_sort(data,data+size);
-    //isort3(data,size);
+  case Bentley_qsort6_1_0:
+    qsort6_1_0(data,0,size-1);
+    SortBench_STLPORT::__final_insertion_sort(data,data+size);
+    break;
+  case Bentley_qsort6_1_1:
+    qsort6_1_1(data,0,size-1);
+    SortBench_STLPORT::__final_insertion_sort(data,data+size);
+    break;
+  case Bentley_qsort6_1_2:
+    qsort6_1_2(data,0,size-1);
+    SortBench_STLPORT::__final_insertion_sort(data,data+size);
+    break;
+  case Bentley_qsort6_1_3:
+    qsort6_1_3(data,0,size-1);
+    SortBench_STLPORT::__final_insertion_sort(data,data+size);
     break;
   case Bentley_qsort7:
     qsort7(data,0,size-1);
@@ -1176,7 +1243,8 @@ int main(int argc, char *argv[])
 
     bench(Iter,N);
 
-    if (N == 1000000){
+    //if (N == 1000000)
+    {
       cout<< "    size    \t" 
           << "   method   \t" ;
       for (int k =0; k < SIZEOF_ARRAY(AllDistEntries);k++)
