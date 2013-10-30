@@ -83,7 +83,7 @@ namespace SortBench{
   template<class _RanIt> inline
   void QuickSort(_RanIt _First, _RanIt _Last)
   {	// order [_First, _Last), using operator<
-    typedef iterator_traits<_RanIt>::reference reference_t;
+
     typedef iterator_traits<_RanIt>::value_type value_t;
 
     if( _Last - _First < cutoff )
@@ -93,21 +93,21 @@ namespace SortBench{
     _RanIt pm = Median(_First, Mid, _Last-1);
     std::iter_swap(_First,pm);
 
-    const value_t tmp = *_First;
+    const value_t pivot = *_First;
 
-    _RanIt i = _First;
-    _RanIt j = _Last;
+    _RanIt forwardI = _First;
+    _RanIt cut = _Last;
     for (;;){
-      do ++i; while (i != _Last && *i < tmp);
-      do --j; while (*j > tmp);
-      if (i > j)
+      do ++forwardI; while (forwardI < _Last && *forwardI < pivot);
+      do --cut; while (*cut > pivot);
+      if (forwardI >= cut)
         break;
-      std::iter_swap(i,j);
+      std::iter_swap(forwardI,cut);
     }
-    std::iter_swap(_First,j);
+    std::iter_swap(_First,cut);
 
-    QuickSort(_First,j);
-    QuickSort(j+1,_Last);
+    QuickSort(_First,cut);
+    QuickSort(cut+1,_Last);
   }
 }
 
