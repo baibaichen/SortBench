@@ -7,6 +7,8 @@
 #include <iostream>
 
 #include "quicksort.h"
+#include "dualpivotquick.h"
+
 #include "sort.h"
 #include "timsort.h"
 #include "drand48.h"
@@ -724,6 +726,37 @@ void qsort6(DType*data, int l, int u)
   qsort6(data,j+1, u);
 }
 
+void qsort6_1(DType*data, int l, int u)
+{  
+  if (u - l < cutoff){
+    isort3(data+l,u-l+1);
+    return;
+  }
+  int  Mid = l + (u + 1 - l) / 2;  // sort median to _Mid
+  DType *pm = Med3(data+l, data+Mid, data+u);
+  DType t = *pm; //*pm=data[l]; data[l]=t; //swap
+
+  //DType t = SortBench_STLPORT::__median(data[l],data[Mid],data[u]);
+  /*DType* cut = SortBench_STLPORT::__unguarded_partition(data+l,data+u+1,t);
+  int i = cut-data;*/
+
+  ////3
+  int i = l, j = u+1;
+  for (;;)
+  {
+    while (data[i] < t) ++i;
+    --j;
+    while (t < data[j]) --j;
+    if(i>=j)
+      break;
+    Bentleyswap(data,i, j);
+    ++i;
+  }
+
+  qsort6_1(data,l, i-1);
+  qsort6_1(data,i, u);
+}
+
 void qsort7(DType*data, int l, int u)
 {  
   int i, j;
@@ -958,12 +991,14 @@ enum sortalgo_t
   Bentley_qsort,
   Bentley_qsort5,
   Bentley_qsort6,
+  Bentley_qsort6_1,
   Bentley_qsort7,
   Bentley_qsort8,
   java_dual_pivot,
   java_timsort,
 
   Template_QSort,
+  Template_DQSort,
   STLPort_Sort,
 };
 
@@ -985,13 +1020,15 @@ BenchEntry IntBenchEntries[] =
   //{paul_mergesort,   "paul mergesort"},
   //{paul_heapSort,   " paul heapsort"},
   //{Bentley_qsort,    " single i sort"},
-  {Bentley_qsort5,   " random pivot "},
-  {Bentley_qsort6,   "  median of 3 "},
-  {Bentley_qsort7,   "adaptive pivot"},
+  //{Bentley_qsort5,   " random pivot "},
+  //{Bentley_qsort6,   "  median of 3 "},
+  //{Bentley_qsort6_1, "median of 3__2"},
+  //{Bentley_qsort7,   "adaptive pivot"},
   //{Bentley_qsort8,   "3way partition"},
   //{java_dual_pivot,  "    dual pivot"},
-  {Template_QSort,   " template sort"},
-  {STLPort_Sort,    " stl port sort"},
+  //{Template_QSort,   " template sort"},
+  {Template_DQSort,   "template Dsort"},
+  //{STLPort_Sort,    " stl port sort"},
   //{java_timsort,    "       timsort"},
 };
 
@@ -1042,6 +1079,11 @@ inline static double run_sort(sortalgo_t runalgo, int * data, int size )
   case Bentley_qsort6:
     qsort6(data,0,size-1);
     break;
+  case Bentley_qsort6_1:
+    qsort6_1(data,0,size-1);
+    //SortBench_STLPORT::__final_insertion_sort(data,data+size);
+    //isort3(data,size);
+    break;
   case Bentley_qsort7:
     qsort7(data,0,size-1);
     break;
@@ -1057,6 +1099,9 @@ inline static double run_sort(sortalgo_t runalgo, int * data, int size )
   case Template_QSort:
     SortBench::QuickSort(data,data+size);
     break;
+  case Template_DQSort:
+    SortBenchDual::dp_qsort(data,data+size,3);
+    SortBench_STLPORT::__final_insertion_sort(data,data+size);
   case STLPort_Sort:
     SortBench_STLPORT::sort(data,data+size);
     break;

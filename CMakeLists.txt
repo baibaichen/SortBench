@@ -2,7 +2,7 @@ project (SortBench)
 cmake_minimum_required (VERSION 2.6)
 
 SET(sortbench_src sort.cc dualpivot_sort.cc sort.h drand48.h timsort.h 
-				  quicksort.h)
+				  quicksort.h dualpivotquick.h)
 ADD_EXECUTABLE(sortbench ${sortbench_src})
 
 
