@@ -791,6 +791,34 @@ void qsort6_1_2(DType*data, int l, int u)
   qsort6_1_2(data,i, u);
 }
 
+inline DType* partition6_1_2_0(DType*first,DType*last,DType pivot)
+{  
+  // manually implement  SortBench_STLPORT::__unguarded_partition
+  for(;;){
+    
+    while( *first < pivot) ++first;
+    do --last; while (pivot < *last);
+    if(first >= last)
+      return first;
+    std::iter_swap(first, last);
+    ++first;
+  }
+}
+void qsort6_1_2_0(DType*data, int l, int u)
+{  //median of 3, without guard, final insertion sort
+   // using partition6_1_2_0, 
+   
+  if (u - l < cutoff)
+    return;
+
+  int  Mid = l + (u + 1 - l) / 2; 
+  DType t = *(Med3(data+l, data+Mid, data+u)); 
+  DType* cut = partition6_1_2_0(data+l,data+u+1,t);
+  int i = cut-data;
+  qsort6_1_2_0(data,l, i-1);
+  qsort6_1_2_0(data,i, u);
+}
+
 void qsort6_1_3(DType*data, int l, int u)
 { //median of 3, without guard, final insertion sort
   // using SortBench_STLPORT::__median
@@ -959,13 +987,13 @@ struct DistEntry
 };
 DistEntry AllDistEntries[] =
 {
-  {sorted,             "    sorted"},
+  //{sorted,             "    sorted"},
   {randomized,         "    random"},
   //{reversed,           "  R sorted"},
   //{partially_sorted_0, "  sort[10]"},
   //{partially_sorted_1, "sort[1000]"},
   //{unique_key_100000,  "10^5 U key"},
-  {unique_key_100,     "10^2 U key"},
+  //{unique_key_100,     "10^2 U key"},
 };
 
 template <typename _RanIt>
@@ -1044,6 +1072,7 @@ enum sortalgo_t
   Bentley_qsort6_1_0,
   Bentley_qsort6_1_1,
   Bentley_qsort6_1_2,
+  Bentley_qsort6_1_2_0,
   Bentley_qsort6_1_3,
   Bentley_qsort7,
   Bentley_qsort8,
@@ -1065,27 +1094,28 @@ struct BenchEntry
 
 BenchEntry IntBenchEntries[] =
 {
-  //{c_qsort,         "       c qsort"},
-  //{stl_sort,        "      c++ sort"},
-  //{stl_stable_sort, "c++ stablesort"},
-  //{stl_heap_sort,   "  c++ heapsort"},
-  //{paul_qsort,       "    paul qsort"},
-  //{paul_mergesort,   "paul mergesort"},
-  //{paul_heapSort,   " paul heapsort"},
-  //{Bentley_qsort,    " single i sort"},
-  //{Bentley_qsort5,   " random pivot "},
-  {Bentley_qsort6,   "  median of 3 "},
-  {Bentley_qsort6_1_0, "median of 3__0"},
-  {Bentley_qsort6_1_1, "median of 3__1"},
-  {Bentley_qsort6_1_2, "median of 3__2"},
-  {Bentley_qsort6_1_3, "median of 3__3"},
-  //{Bentley_qsort7,   "adaptive pivot"},
-  //{Bentley_qsort8,   "3way partition"},
-  //{java_dual_pivot,  "    dual pivot"},
-  //{Template_QSort,   " template sort"},
-  //{Template_DQSort,   "template Dsort"},
-  {STLPort_Sort,    " stl port sort"},
-  //{java_timsort,    "       timsort"},
+  //{c_qsort,              "       c qsort"},
+  //{stl_sort,             "      c++ sort"},
+  //{stl_stable_sort,      "c++ stablesort"},
+  //{stl_heap_sort,        "  c++ heapsort"},
+  //{paul_qsort,           "    paul qsort"},
+  //{paul_mergesort,       "paul mergesort"},
+  //{paul_heapSort,        " paul heapsort"},
+  //{Bentley_qsort,        " single i sort"},
+  //{Bentley_qsort5,       "  random pivot"},
+  //{Bentley_qsort6,       "  med of 3[m3]"},
+  //{Bentley_qsort6_1_0,   "NG m3[ Simple]"}, //no guard median of 3, simple implementation
+  //{Bentley_qsort6_1_1,   "NG m3[ STLP M]"}, //no guard, using STLPORT median3
+  //{Bentley_qsort6_1_2,   "NG m3[ STLP P]"}, //no guard, using STLPORT partition
+  //{Bentley_qsort6_1_2_0, "NG m3[   my P]"}, //no guard, rewritten partition
+  //{Bentley_qsort6_1_3,   "NG m3[STLP MP]"}, //no guard, using STLPORT median and partition
+  //{Bentley_qsort7,       "adaptive pivot"},
+  //{Bentley_qsort8,       "3way partition"},
+  //{java_dual_pivot,      "    dual pivot"},
+  {Template_QSort,       " template sort"},
+  //{Template_DQSort,      "template Dsort"},
+  {STLPort_Sort,         " stl port sort"},
+  //{java_timsort,         "       timsort"},
 };
 
 #ifndef SIZEOF_ARRAY
@@ -1145,6 +1175,10 @@ inline static double run_sort(sortalgo_t runalgo, int * data, int size )
     break;
   case Bentley_qsort6_1_2:
     qsort6_1_2(data,0,size-1);
+    SortBench_STLPORT::__final_insertion_sort(data,data+size);
+    break;
+  case Bentley_qsort6_1_2_0:
+    qsort6_1_2_0(data,0,size-1);
     SortBench_STLPORT::__final_insertion_sort(data,data+size);
     break;
   case Bentley_qsort6_1_3:
