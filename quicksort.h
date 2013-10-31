@@ -2,6 +2,8 @@
 #define _QUICKSORT_H__
 
 #include <algorithm>    // std::iter_swap
+#include <iterator>     // std::distance
+
 namespace SortBench{
 
   const int cutoff = 32;
@@ -86,14 +88,14 @@ namespace SortBench{
 
     typedef iterator_traits<_RanIt>::value_type value_t;
 
-    if( _Last - _First < cutoff )
+    if(std::distance(_First,_Last) < cutoff )
       return Insertion_sort(_First,_Last);
 
     _RanIt Mid = _First + (_Last - _First) / 2;  // sort median to _Mid
     _RanIt pm = Median(_First, Mid, _Last-1);
     std::iter_swap(_First,pm);
 
-    const value_t pivot = *_First;
+    value_t pivot = *_First;
 
     _RanIt forwardI = _First;
     _RanIt cut = _Last;
