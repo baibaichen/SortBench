@@ -1082,6 +1082,7 @@ enum sortalgo_t
   Template_QSort,
   Template_DQSort,
   STLPort_Sort,
+  STLPort_Sort_Compare,
 };
 
 const int maxIter = 100;
@@ -1115,6 +1116,7 @@ BenchEntry IntBenchEntries[] =
   {Template_QSort,       " template sort"},
   //{Template_DQSort,      "template Dsort"},
   {STLPort_Sort,         " stl port sort"},
+  {STLPort_Sort_Compare, " STLP sort cmp"},
   //{java_timsort,         "       timsort"},
 };
 
@@ -1199,6 +1201,7 @@ inline static double run_sort(sortalgo_t runalgo, int * data, int size )
     break;
   case Template_QSort:
     SortBench::QuickSort(data,data+size);
+    SortBench_STLPORT::__final_insertion_sort(data,data+size);
     break;
   case Template_DQSort:
     SortBenchDual::dp_qsort(data,data+size,3);
@@ -1206,6 +1209,11 @@ inline static double run_sort(sortalgo_t runalgo, int * data, int size )
   case STLPort_Sort:
     SortBench_STLPORT::sort(data,data+size);
     break;
+  case STLPort_Sort_Compare:
+    {
+      SortBench_STLPORT::sort(data,data+size,std::less<int>());
+      break;
+    }
   }
   clock_t t2 = clock();
   return (double)(t2-t1)/CLOCKS_PER_SEC;
