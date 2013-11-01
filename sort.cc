@@ -761,7 +761,7 @@ void qsort6_1_1(DType*data, int l, int u)
   
   int  Mid = l + (u + 1 - l) / 2;  // sort median to _Mid
 
-  DType t = SortBench_STLPORT::__median(data[l],data[Mid],data[u]);
+  DType t = SortBench_STLPORT::__median3(data[l],data[Mid],data[u]);
 
   int i = l, j = u+1;
   for (;;)
@@ -828,7 +828,7 @@ void qsort6_1_3(DType*data, int l, int u)
     return;
   
   int  Mid = l + (u + 1 - l) / 2;  // sort median to _Mid
-  DType t = SortBench_STLPORT::__median(data[l],data[Mid],data[u]);
+  DType t = SortBench_STLPORT::__median3(data[l],data[Mid],data[u]);
   DType* cut = SortBench_STLPORT::__unguarded_partition(data+l,data+u+1,t);
   int i = cut-data;
   qsort6_1_3(data,l, i-1);
@@ -1024,7 +1024,7 @@ void generate_test_datas(_RanIt _First, _RanIt _Last, dist_t dist)
 
   _RanIt first_tmp = _First;
   if(dist == randomized){
-    random r(1243);
+    random r(0);
     while (first_tmp != _Last)
       *first_tmp++ = r.nextInt();
     return;
@@ -1229,7 +1229,7 @@ inline static double run_sort(sortalgo_t runalgo, int * data, int size )
     gfx::timsort(data,data+size);
     break;
   case Template_QSort:
-    SortBench::QuickSort(data,data+size);
+    SortBench::STLPORT__QuickSort(data,data+size);
     SortBench_STLPORT::__final_insertion_sort(data,data+size);
     break;
   case Template_DQSort:

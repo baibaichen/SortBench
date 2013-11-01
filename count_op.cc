@@ -53,15 +53,34 @@ void generate_random_sequnce(_RanIt _First, _RanIt _Last, uint32_t seed)
 }
 
 const int cutoff  = 32;
-template<class _RanIt,typename _Compare>
-inline _RanIt Med3(_RanIt _First, _RanIt _Mid, _RanIt _Last, _Compare __comp)
-{ 
-  return (__comp(*_First , *_Mid))?
-    (__comp(*_Mid , *_Last)? _Mid: __comp(*_First , *_Last) ? _Last:_First):
-    (__comp(*_Last, *_Mid )? _Mid: __comp(*_First , *_Last) ? _First:_Last);
+//template<class _RanIt,typename _Compare>
+//inline _RanIt Med3(_RanIt _First, _RanIt _Mid, _RanIt _Last, _Compare __comp)
+//{ 
+//  return (__comp(*_First , *_Mid))?
+//    (__comp(*_Mid , *_Last)? _Mid: __comp(*_First , *_Last) ? _Last:_First):
+//    (__comp(*_Last, *_Mid )? _Mid: __comp(*_First , *_Last) ? _First:_Last);
+//}
+
+template<typename _RanIt ,typename _Compare>
+inline _RanIt Med3(_RanIt __a, _RanIt __b, _RanIt __c, _Compare __comp)
+{
+  if (__comp(*__a ,*__b))
+    if (__comp(*__b , *__c))
+      return __b;
+    else if (__comp(*__a , *__c))
+      return __c;
+    else
+      return __a;
+  else if (__comp(*__a , *__c))
+    return __a;
+  else if (__comp(*__b , *__c))
+    return __c;
+  else
+    return __b;
 }
+
 template<class _RanIt,typename _Compare> 
-inline _RanIt Median(_RanIt _First, _RanIt _Mid, _RanIt _Last, _Compare __comp)
+inline _RanIt Median9(_RanIt _First, _RanIt _Mid, _RanIt _Last, _Compare __comp)
 { // sort median element to middle
   if (40 < _Last - _First){ // median of nine
     size_t _Step = (_Last - _First + 1) / 8;
@@ -81,13 +100,11 @@ inline void STLPORT_QuickSort(_RanIt _First, _RanIt _Last, _Compare __comp)
   typedef iterator_traits<_RanIt>::value_type value_t;
 
   if(std::distance(_First,_Last) <= cutoff )
-    return ;//SortBench_STLPORT::__final_insertion_sort(_First,_Last,__comp);
+    return ;
 
   _RanIt Mid = _First + (_Last - _First) / 2;
-  //_RanIt pm = Med3(_First, Mid, _Last-1,__comp);
-
-  value_t pivot = 
-    SortBench_STLPORT::__median(*_First,*Mid,*(_Last-1),__comp);
+  //value_t pivot = *(Median9(_First, Mid, _Last-1,__comp));
+  value_t pivot = SortBench_STLPORT::__median3(*_First,*Mid,*(_Last-1),__comp);
 
   _RanIt cut = _First - 1;
   _RanIt backwardI = _Last;
@@ -110,10 +127,11 @@ inline void QuickSort(_RanIt _First, _RanIt _Last, _Compare __comp)
   typedef iterator_traits<_RanIt>::value_type value_t;
 
   if(std::distance(_First,_Last) <= cutoff )
-    return; //Insertion_sort(_First,_Last);
+    return;
 
+  less_with_count<_RanIt> lt;
   _RanIt Mid = _First + (_Last - _First) / 2;  
-  _RanIt pm = Median(_First, Mid, _Last-1,__comp);
+  _RanIt pm = Median9(_First, Mid, _Last-1,__comp);
   count_iter_swap(_First,pm);
 
   value_t pivot = *_First;
@@ -121,7 +139,7 @@ inline void QuickSort(_RanIt _First, _RanIt _Last, _Compare __comp)
   _RanIt forwardI = _First;
   _RanIt cut = _Last;
   for (;;){
-    do ++forwardI; while (forwardI < _Last && __comp(*forwardI , pivot));
+    do ++forwardI; while (lt(forwardI , _Last) && __comp(*forwardI , pivot));
     do --cut; while (__comp(pivot,*cut));
     if (forwardI >= cut)
       break;
@@ -220,6 +238,6 @@ static void bench(int iter,int size)
 
 int main(int argc, char *argv[])
 {
-  bench(6000,1024*1024*100);
+  bench(6,1024*1024*100);
   return 0;
 }

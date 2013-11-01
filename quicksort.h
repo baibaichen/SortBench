@@ -8,18 +8,35 @@ namespace SortBench{
 
   const int cutoff = 32;
 
-  template<class _RanIt> inline
-    _RanIt Med3(_RanIt _First, _RanIt _Mid, _RanIt _Last)
-  { 
-    return (*_First < *_Mid)?
-      ((*_Mid < *_Last)? _Mid: (*_First < *_Last) ? _Last:_First):
-      ((*_Mid > *_Last)? _Mid: (*_First < *_Last) ? _First:_Last);
+  template<typename _RanIt>
+  inline _RanIt Med3(_RanIt __a, _RanIt __b, _RanIt __c)
+  {
+    if (*__a < *__b)
+      if (*__b < *__c)
+        return __b;
+      else if (*__a < *__c)
+        return __c;
+      else
+        return __a;
+    else if (*__a < *__c)
+      return __a;
+    else if (*__b < *__c)
+      return __c;
+    else
+      return __b;
   }
+  //template<class _RanIt> inline
+  //  _RanIt Med3(_RanIt _First, _RanIt _Mid, _RanIt _Last)
+  //{ 
+  //  return (*_First < *_Mid)?
+  //    ((*_Mid < *_Last)? _Mid: (*_First < *_Last) ? _Last:_First):
+  //    ((*_Mid > *_Last)? _Mid: (*_First < *_Last) ? _First:_Last);
+  //}
 
   template<class _RanIt> inline
-    _RanIt Median(_RanIt _First, _RanIt _Mid, _RanIt _Last)
-  { // sort median element to middle
-    if (40 < _Last - _First){ // median of nine
+  _RanIt Median(_RanIt _First, _RanIt _Mid, _RanIt _Last)
+  { 
+    if (40 < _Last - _First){ 
       size_t _Step = (_Last - _First + 1) / 8;
       _RanIt p1 = Med3(_First, _First + _Step, _First + 2 * _Step);
       _RanIt p2 = Med3(_Mid - _Step, _Mid, _Mid + _Step);
@@ -83,7 +100,7 @@ namespace SortBench{
 
 
   template<class _RanIt> inline
-    void QuickSort(_RanIt _First, _RanIt _Last)
+  void QuickSort(_RanIt _First, _RanIt _Last)
   {	// order [_First, _Last), using operator<
 
     typedef iterator_traits<_RanIt>::value_type value_t;
@@ -122,9 +139,7 @@ namespace SortBench{
       return;// Insertion_sort(_First,_Last);
 
     _RanIt Mid = _First + (_Last - _First) / 2;
-    _RanIt pm = Med3(_First, Mid, _Last-1);
-
-    value_t pivot = *pm;
+    value_t pivot = *(Med3(_First, Mid, _Last-1));
 
     _RanIt cut = _First - 1;
     _RanIt backwardI = _Last;
@@ -147,7 +162,7 @@ namespace SortBench_STLPORT{
 
   template<typename _Tp>
   inline const _Tp&
-  __median(const _Tp& __a, const _Tp& __b, const _Tp& __c)
+  __median3(const _Tp& __a, const _Tp& __b, const _Tp& __c)
   {
     // concept requirements
     if (__a < __b)
@@ -192,6 +207,8 @@ namespace SortBench_STLPORT{
   {
     typedef typename iterator_traits<_RandomAccessIterator>::value_type
       _ValueType;
+    
+    using SortBench::Median;
 
     while (__last - __first > int(_S_threshold)){
       if (__depth_limit == 0){
@@ -200,9 +217,14 @@ namespace SortBench_STLPORT{
       }
       --__depth_limit;
 
-      _RandomAccessIterator __cut =
+      //_RandomAccessIterator __cut =
+      //          __unguarded_partition(__first, __last,
+      //                        _ValueType(*Median(__first,
+      //                                            (__first+ (__last- __first)/ 2),
+      //                                            (__last- 1))));
+      _RandomAccessIterator __cut =        
         __unguarded_partition(__first, __last,
-                              _ValueType(__median(*__first,
+                              _ValueType(__median3(*__first,
                                                   *(__first+ (__last- __first)/ 2),
                                                   *(__last- 1))));
       __introsort_loop(__cut, __last, __depth_limit);
@@ -372,7 +394,7 @@ namespace SortBench_STLPORT{
   }
 
   template <class _Tp, class _Compare>
-  const _Tp& __median(const _Tp& __a, 
+  const _Tp& __median3(const _Tp& __a, 
                       const _Tp& __b, 
                       const _Tp& __c, 
                       _Compare __comp) 
@@ -432,7 +454,7 @@ namespace SortBench_STLPORT{
       --__depth_limit;
       _RandomAccessIter __cut =
         __unguarded_partition(__first, __last, 
-                              _ValueType(__median(*__first,
+                              _ValueType(__median3(*__first,
                                                 *(__first + (__last - __first)/2),
                                                 *(__last - 1), __comp)),
                               __comp);
