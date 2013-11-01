@@ -88,8 +88,8 @@ namespace SortBench{
 
     typedef iterator_traits<_RanIt>::value_type value_t;
 
-    if(std::distance(_First,_Last) < cutoff )
-      return Insertion_sort(_First,_Last);
+    if(std::distance(_First,_Last) <= cutoff )
+      return;// Insertion_sort(_First,_Last);
 
     _RanIt Mid = _First + (_Last - _First) / 2;  // sort median to _Mid
     _RanIt pm = Median(_First, Mid, _Last-1);
@@ -101,7 +101,7 @@ namespace SortBench{
     _RanIt cut = _Last;
     for (;;){
       do ++forwardI; while (forwardI < _Last && *forwardI < pivot);
-      do --cut; while (*cut > pivot);
+      do --cut; while (pivot < *cut );
       if (forwardI >= cut)
         break;
       std::iter_swap(forwardI,cut);
@@ -118,7 +118,7 @@ namespace SortBench{
 
     typedef iterator_traits<_RanIt>::value_type value_t;
 
-    if(std::distance(_First,_Last) < cutoff )
+    if(std::distance(_First,_Last) <= cutoff )
       return;// Insertion_sort(_First,_Last);
 
     _RanIt Mid = _First + (_Last - _First) / 2;
