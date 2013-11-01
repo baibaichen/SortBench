@@ -1006,7 +1006,7 @@ void generate_test_datas(_RanIt _First, _RanIt _Last, dist_t dist)
   std::less<value_t> lt;
   std::greater<value_t> gt;
 
-  int m = _Last-_First;
+  intptr_t m = _Last-_First;
   if (dist ==  unique_key_100000)
     m = 100000;
   else if(dist ==  unique_key_100)

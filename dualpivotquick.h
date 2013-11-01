@@ -12,11 +12,11 @@ namespace SortBenchDual{
 
     typedef iterator_traits<_RanIt>::value_type value_t;
 
-    int len = last - first;
+    intptr_t len = last - first;
     if( len < cutoff )
       return; 
 
-    int third = len / div;
+    intptr_t third = len / div;
 
     //medians
     _RanIt m1 = first + third;
