@@ -34,7 +34,7 @@ namespace SortBench{
   //}
 
   template<class _RanIt> inline
-  _RanIt Median(_RanIt _First, _RanIt _Mid, _RanIt _Last)
+  _RanIt Median9(_RanIt _First, _RanIt _Mid, _RanIt _Last)
   { 
     if (40 < _Last - _First){ 
       size_t _Step = (_Last - _First + 1) / 8;
@@ -109,7 +109,7 @@ namespace SortBench{
       return;// Insertion_sort(_First,_Last);
 
     _RanIt Mid = _First + (_Last - _First) / 2;  // sort median to _Mid
-    _RanIt pm = Median(_First, Mid, _Last-1);
+    _RanIt pm = Median9(_First, Mid, _Last-1);
     std::iter_swap(_First,pm);
 
     value_t pivot = *_First;
@@ -130,9 +130,8 @@ namespace SortBench{
   }
 
   template<class _RanIt> inline
-  void STLPORT__QuickSort(_RanIt _First, _RanIt _Last)
-  {	// order [_First, _Last), using operator<
-
+    void QuickSort1(_RanIt _First, _RanIt _Last)
+  {	
     typedef iterator_traits<_RanIt>::value_type value_t;
 
     if(std::distance(_First,_Last) <= cutoff )
@@ -151,8 +150,33 @@ namespace SortBench{
       std::iter_swap(cut,backwardI);
     }
 
-    STLPORT__QuickSort(_First,cut);
-    STLPORT__QuickSort(cut,_Last);
+    QuickSort1(_First,cut);
+    QuickSort1(cut,_Last);
+  }
+
+  template<class _RanIt> inline
+  void QuickSort2(_RanIt _First, _RanIt _Last)
+  {	
+    typedef iterator_traits<_RanIt>::value_type value_t;
+
+    if(std::distance(_First,_Last) <= cutoff )
+      return;// Insertion_sort(_First,_Last);
+
+    _RanIt Mid = _First + (_Last - _First) / 2;
+    value_t pivot = *(Median9(_First, Mid, _Last-1));
+
+    _RanIt cut = _First - 1;
+    _RanIt backwardI = _Last;
+    for (;;){
+      do ++cut; while (*cut < pivot );
+      do --backwardI; while (pivot < *backwardI );
+      if (cut >= backwardI)
+        break;
+      std::iter_swap(cut,backwardI);
+    }
+
+    QuickSort2(_First,cut);
+    QuickSort2(cut,_Last);
   }
 }
 
@@ -208,7 +232,7 @@ namespace SortBench_STLPORT{
     typedef typename iterator_traits<_RandomAccessIterator>::value_type
       _ValueType;
     
-    using SortBench::Median;
+    using SortBench::Median9;
 
     while (__last - __first > int(_S_threshold)){
       if (__depth_limit == 0){

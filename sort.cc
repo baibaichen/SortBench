@@ -1144,7 +1144,7 @@ BenchEntry IntBenchEntries[] =
   //{java_dual_pivot,      "    dual pivot"},
   //{Template_DQSort,      "template Dsort"},
   {STLPort_Sort,         " stl port sort"},
-  {STLPort_Sort_Compare, " STLP sort cmp"},
+  //{STLPort_Sort_Compare, " STLP sort cmp"},
   {Template_QSort,       " template sort"},
   //{java_timsort,         "       timsort"},
 };
@@ -1229,7 +1229,7 @@ inline static double run_sort(sortalgo_t runalgo, int * data, int size )
     gfx::timsort(data,data+size);
     break;
   case Template_QSort:
-    SortBench::STLPORT__QuickSort(data,data+size);
+    SortBench::QuickSort2(data,data+size);
     SortBench_STLPORT::__final_insertion_sort(data,data+size);
     break;
   case Template_DQSort:
