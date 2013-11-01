@@ -140,7 +140,26 @@ inline static void resetCounterAndSequence(uint32_t * copied, int size, uint32_t
   g_swap_with_count = 0;
 }
 
+
 using namespace std;
+
+template<class _RanIt>
+inline void verify(_RanIt _First, _RanIt _Last)
+{
+  bool IsOK = true;
+  for (_RanIt x = _First; x < _Last-1 ; x++)
+  {
+    if(*x > *(x+1)){
+      IsOK = false;
+      break;
+    }
+  }
+  if(IsOK)
+    cout<<"[P],";
+  else
+    cout<<"[F],";
+}
+
 static void bench(int iter,int size)
 {
   uint32_t * data = (uint32_t *) malloc(sizeof(uint32_t) * size);
@@ -148,30 +167,51 @@ static void bench(int iter,int size)
 
   for (int i = 0; i <iter;i++)
   {
+    cerr << "run "<< i << '/' << iter << '\n';
     generate_random_sequnce(copied,copied+size,i);
 
     //resetCounterAndSequence(copied, size, data);
     //SortBench_STLPORT::sort(data,data+size,less_with_count<uint32_t>());
+    //cout << i<<",STLPORTSORT,";
+    //verify(data,data+size);
     //cout << g_comp_with_count
     //     <<','
     //     << g_swap_with_count
     //     <<'\n';
 
     resetCounterAndSequence(copied, size, data);
-    STLPORT_QuickSort(data,data+size,less_with_count<uint32_t>());
-    SortBench_STLPORT::__final_insertion_sort(data,data+size,less_with_count<uint32_t>());
-    cout << g_comp_with_count
-         <<','
-         << g_swap_with_count
-         <<'\n';
+    {
+      clock_t t1 = clock();
+      STLPORT_QuickSort(data,data+size,less_with_count<uint32_t>());
+      SortBench_STLPORT::__final_insertion_sort(data,data+size,less_with_count<uint32_t>());
+      clock_t t2 = clock();
+
+      cout << i<<",STLPORTSORT,";
+      verify(data,data+size);
+      cout << g_comp_with_count
+        <<','
+        << g_swap_with_count
+        <<','
+        <<((double)(t2-t1)/CLOCKS_PER_SEC)
+        <<'\n';
+    }
 
     resetCounterAndSequence(copied, size, data);
-    QuickSort(data,data+size,less_with_count<uint32_t>());
-    SortBench_STLPORT::__final_insertion_sort(data,data+size,less_with_count<uint32_t>());
-    cout << g_comp_with_count
-      <<','
-      << g_swap_with_count
-      <<'\n';
+    {
+      clock_t t1 = clock();
+      QuickSort(data,data+size,less_with_count<uint32_t>());
+      SortBench_STLPORT::__final_insertion_sort(data,data+size,less_with_count<uint32_t>());
+      clock_t t2 = clock();
+
+      cout << i<<",Median of 3 median,";
+      verify(data,data+size);
+      cout << g_comp_with_count
+        <<','
+        << g_swap_with_count
+        <<','
+        <<((double)(t2-t1)/CLOCKS_PER_SEC)
+        <<'\n';
+    }
   }
   free(data);
   free(copied);
@@ -180,6 +220,6 @@ static void bench(int iter,int size)
 
 int main(int argc, char *argv[])
 {
-  bench(2,1024*1024*100);
+  bench(6000,1024*1024*100);
   return 0;
 }
