@@ -5,6 +5,7 @@
 #include <algorithm>
 #include <functional>
 #include <iostream>
+#include <cstdint>
 
 #include "quicksort.h"
 #include "dualpivotquick.h"
@@ -995,13 +996,40 @@ DistEntry AllDistEntries[] =
   //{unique_key_100000,  "10^5 U key"},
   //{unique_key_100,     "10^2 U key"},
 };
+struct random
+{
+  uint32_t seed;
+
+  uint32_t next(){
+    seed = seed * 1103515245L + 12345;
+    return seed;
+  }
+
+  int32_t nextInt(){
+    seed = seed * 1103515245L + 12345;
+    return seed;
+  }
+
+  random (uint32_t s)
+  {
+    seed = s;
+  }
+};
 
 template <typename _RanIt>
 void generate_test_datas(_RanIt _First, _RanIt _Last, dist_t dist)
 {
   int i = 0;
-  
   typedef iterator_traits<_RanIt>::value_type value_t;
+
+  _RanIt first_tmp = _First;
+  if(dist == randomized){
+    random r(1243);
+    while (first_tmp != _Last)
+      *first_tmp++ = r.nextInt();
+    return;
+  }
+
 
   std::less<value_t> lt;
   std::greater<value_t> gt;
@@ -1012,13 +1040,14 @@ void generate_test_datas(_RanIt _First, _RanIt _Last, dist_t dist)
   else if(dist ==  unique_key_100)
     m = 100;
   
-  _RanIt first_tmp = _First;
+  
   while (first_tmp != _Last)
     *first_tmp++ = (i++)%m;
   
   switch(dist)
   {
   case randomized:
+    break;
   case unique_key_100000:
   case unique_key_100:
     std::random_shuffle(_First,_Last);
@@ -1113,10 +1142,10 @@ BenchEntry IntBenchEntries[] =
   //{Bentley_qsort7,       "adaptive pivot"},
   //{Bentley_qsort8,       "3way partition"},
   //{java_dual_pivot,      "    dual pivot"},
-  {Template_QSort,       " template sort"},
   //{Template_DQSort,      "template Dsort"},
   {STLPort_Sort,         " stl port sort"},
   {STLPort_Sort_Compare, " STLP sort cmp"},
+  {Template_QSort,       " template sort"},
   //{java_timsort,         "       timsort"},
 };
 
