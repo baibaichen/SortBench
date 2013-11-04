@@ -13,6 +13,7 @@
 #include "sort.h"
 #include "timsort.h"
 #include "drand48.h"
+#include "random.h"
 
 using namespace std;
 
@@ -996,25 +997,6 @@ DistEntry AllDistEntries[] =
   //{unique_key_100000,  "10^5 U key"},
   //{unique_key_100,     "10^2 U key"},
 };
-struct random
-{
-  uint32_t seed;
-
-  uint32_t next(){
-    seed = seed * 1103515245L + 12345;
-    return seed;
-  }
-
-  int32_t nextInt(){
-    seed = seed * 1103515245L + 12345;
-    return seed;
-  }
-
-  random (uint32_t s)
-  {
-    seed = s;
-  }
-};
 
 template <typename _RanIt>
 void generate_test_datas(_RanIt _First, _RanIt _Last, dist_t dist)
@@ -1229,7 +1211,7 @@ inline static double run_sort(sortalgo_t runalgo, int * data, int size )
     gfx::timsort(data,data+size);
     break;
   case Template_QSort:
-    SortBench::QuickSort2(data,data+size);
+    SortBench::QuickSort_Meidan9(data,data+size);
     SortBench_STLPORT::__final_insertion_sort(data,data+size);
     break;
   case Template_DQSort:

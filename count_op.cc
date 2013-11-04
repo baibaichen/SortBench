@@ -6,22 +6,9 @@
 #include <functional>
 #include <iostream>
 #include <cstdint>
+#include <string>
 #include "quicksort.h"
-
-struct random
-{
-  uint32_t seed;
-
-  uint32_t next(){
-    seed = seed * 1103515245L + 12345;
-    return seed;
-  }
-
-  random (uint32_t s)
-  {
-    seed = s;
-  }
-};
+#include "random.h"
 
 uint64_t  g_comp_with_count;
 template<class _Ty>
@@ -50,6 +37,23 @@ void generate_random_sequnce(_RanIt _First, _RanIt _Last, uint32_t seed)
   _RanIt first_tmp = _First;
   while (first_tmp != _Last)
     *first_tmp++ = r.next();
+}
+
+inline void random_string(random& rand, int len, std::string& dst)
+{
+  dst.resize(len);
+  for (int i = 0; i < len; i++)
+    dst[i] = static_cast<char>(' ' + rand.uniform(95));   // ' ' .. '~'  
+}
+
+void generate_random_sequnce(std::string* _First, std::string* _Last, uint32_t seed)
+{
+  std::uninitialized_fill(_First,_Last, "");
+  random r(seed);
+  int len = 16;
+  while(_First < _Last){
+    random_string(r,len,*_First++);
+  }
 }
 
 const int cutoff  = 32;
@@ -178,10 +182,11 @@ inline void verify(_RanIt _First, _RanIt _Last)
     cout<<"[F],";
 }
 
+template <typename VType>
 static void bench(int iter,int size)
 {
-  uint32_t * data = (uint32_t *) malloc(sizeof(uint32_t) * size);
-  uint32_t * copied = (uint32_t *) malloc(sizeof(uint32_t) * size);
+  VType * data = (VType *) malloc(sizeof(VType) * size);
+  VType * copied = (VType *) malloc(sizeof(VType) * size);
 
   for (int i = 0; i <iter;i++)
   {
@@ -200,8 +205,8 @@ static void bench(int iter,int size)
     resetCounterAndSequence(copied, size, data);
     {
       clock_t t1 = clock();
-      STLPORT_QuickSort(data,data+size,less_with_count<uint32_t>());
-      SortBench_STLPORT::__final_insertion_sort(data,data+size,less_with_count<uint32_t>());
+      STLPORT_QuickSort(data,data+size,less_with_count<VType>());
+      SortBench_STLPORT::__final_insertion_sort(data,data+size,less_with_count<VType>());
       clock_t t2 = clock();
 
       cout << i<<",STLPORTSORT,";
@@ -217,8 +222,8 @@ static void bench(int iter,int size)
     resetCounterAndSequence(copied, size, data);
     {
       clock_t t1 = clock();
-      QuickSort(data,data+size,less_with_count<uint32_t>());
-      SortBench_STLPORT::__final_insertion_sort(data,data+size,less_with_count<uint32_t>());
+      QuickSort(data,data+size,less_with_count<VType>());
+      SortBench_STLPORT::__final_insertion_sort(data,data+size,less_with_count<VType>());
       clock_t t2 = clock();
 
       cout << i<<",Median of 3 median,";
@@ -238,6 +243,6 @@ static void bench(int iter,int size)
 
 int main(int argc, char *argv[])
 {
-  bench(6,1024*1024*100);
+  bench<uint32_t>(6,1024*1024*100);
   return 0;
 }

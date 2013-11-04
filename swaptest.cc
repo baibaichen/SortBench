@@ -6,6 +6,9 @@
 #include <functional>
 #include <iostream>
 #include <cstdint>
+#include <string>
+#include <memory>
+#include "random.h"
 
 using namespace std;
 
@@ -25,7 +28,22 @@ void generate_test_datas(_RanIt _First, _RanIt _Last)
   while (_First != _Last)
     *_First++ = i++;
 }
+inline void random_string(random& rand, int len, string& dst)
+{
+  dst.resize(len);
+  for (int i = 0; i < len; i++)
+      dst[i] = static_cast<char>(' ' + rand.uniform(95));   // ' ' .. '~'  
+}
 
+void generate_test_datas(string* first,string*last)
+{
+  std::uninitialized_fill(first,last, "");
+  random rand(16807);
+  int len = 16;
+  while(first < last){
+    random_string(rand,len,*first++);
+  }
+}
 template <typename _RanIt>
 void test_iter_swap(_RanIt _First, _RanIt _Last)
 { // [_Frist,_Last)
@@ -74,7 +92,7 @@ double timesPerRun[max_method_count][maxIter];
 template <typename VType>
 static void bench(int iter,int size)
 {
-  VType * data = (VType *) malloc(sizeof(VType) * size);
+  VType * data = (VType *) malloc(sizeof(VType) * size);  
   generate_test_datas(data,data+size);
 
 
@@ -106,6 +124,8 @@ static void bench(int iter,int size)
     }
   free(data);
 }
+
+#define  delim  ','
 int main(int argc, char *argv[])
 {
     int N = 50000000;
@@ -116,34 +136,43 @@ int main(int argc, char *argv[])
     if (argc > 2) Iter = atoi(argv[2]);
     Iter = min(Iter,maxIter);
 
-    cout<< " type \t" 
-      << "method\t" 
+    cout<< " type "<<delim 
+      << "method"  <<delim
       << " time\n";
     
-    bench<int32_t>(Iter,N);
-    for (int j = 0; j < Iter;j++)
-      for(int i = 0;i < max_method_count;i++){
-        cout<<"int32_t"<<"\t"
-          <<methodName[i]<<"\t"
-          <<timesPerRun[i][j]
-        <<'\n';
-      }
-    
-    bench<int64_t>(Iter,N);
-    for (int j = 0; j < Iter;j++)
-      for(int i = 0;i < max_method_count;i++){
-        cout<<"int64_t"<<"\t"
-          <<methodName[i]<<"\t"
-          <<timesPerRun[i][j]
-        <<'\n';
-      }
+    //bench<int32_t>(Iter,N);
+    //for (int j = 0; j < Iter;j++)
+    //  for(int i = 0;i < max_method_count;i++){
+    //    cout<<"int32_t"<<"\t"
+    //      <<methodName[i]<<"\t"
+    //      <<timesPerRun[i][j]
+    //    <<'\n';
+    //  }
+    //
+    //bench<int64_t>(Iter,N);
+    //for (int j = 0; j < Iter;j++)
+    //  for(int i = 0;i < max_method_count;i++){
+    //    cout<<"int64_t"<<"\t"
+    //      <<methodName[i]<<"\t"
+    //      <<timesPerRun[i][j]
+    //    <<'\n';
+    //  }
 
-    bench<double>(Iter,N);
-    for (int j = 0; j < Iter;j++)
-      for(int i = 0;i < max_method_count;i++){
-        cout<<"double"<<"\t"
-          <<methodName[i]<<"\t"
-          <<timesPerRun[i][j]
-        <<'\n';
-      }
+    //bench<double>(Iter,N);
+    //for (int j = 0; j < Iter;j++)
+    //  for(int i = 0;i < max_method_count;i++){
+    //    cout<<"double"<<"\t"
+    //      <<methodName[i]<<"\t"
+    //      <<timesPerRun[i][j]
+    //    <<'\n';
+    //  }
+
+  bench<string>(Iter,N);
+  for (int j = 0; j < Iter;j++)
+    for(int i = 0;i < max_method_count;i++){
+      cout<<"string"   <<delim
+        <<methodName[i]<<delim
+        <<timesPerRun[i][j]
+      <<'\n';
+    }
 }

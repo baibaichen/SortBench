@@ -130,7 +130,7 @@ namespace SortBench{
   }
 
   template<class _RanIt> inline
-    void QuickSort1(_RanIt _First, _RanIt _Last)
+    void QuickSort_Median3(_RanIt _First, _RanIt _Last)
   {	
     typedef iterator_traits<_RanIt>::value_type value_t;
 
@@ -150,12 +150,12 @@ namespace SortBench{
       std::iter_swap(cut,backwardI);
     }
 
-    QuickSort1(_First,cut);
-    QuickSort1(cut,_Last);
+    QuickSort_Median3(_First,cut);
+    QuickSort_Median3(cut,_Last);
   }
 
   template<class _RanIt> inline
-  void QuickSort2(_RanIt _First, _RanIt _Last)
+  void QuickSort_Meidan9(_RanIt _First, _RanIt _Last)
   {	
     typedef iterator_traits<_RanIt>::value_type value_t;
 
@@ -175,8 +175,8 @@ namespace SortBench{
       std::iter_swap(cut,backwardI);
     }
 
-    QuickSort2(_First,cut);
-    QuickSort2(cut,_Last);
+    QuickSort_Meidan9(_First,cut);
+    QuickSort_Meidan9(cut,_Last);
   }
 }
 
