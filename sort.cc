@@ -15,6 +15,31 @@
 #include "drand48.h"
 #include "random.h"
 
+template<typename T> struct block {
+  typedef T  value_type;
+  typedef T* iterator ;
+  typedef const T * const_iterator;
+  typedef T& reference;
+  typedef const T & const_reference;
+
+  operator T*() {return data_; }
+  reference operator[](size_t i) { return data_[i]; }
+  const_reference operator [](size_t i) const { return data_[i]; }
+  iterator begin(){ return data_;}
+  const_iterator begin() const { return data_;}
+  iterator end(){ return data_+size_;}
+  const_iterator end() const { return data_+size_;}
+  ptrdiff_t size() const { return size_ ;}
+
+  block(T data[], size_t size){
+    data_ = data;
+    size_ = size;
+  }
+private:
+  size_t size_;
+  T* data_;
+
+};
 using namespace std;
 
 /**********************************
@@ -1230,28 +1255,34 @@ inline static double run_sort(sortalgo_t runalgo, int * data, int size )
   return (double)(t2-t1)/CLOCKS_PER_SEC;
 }
 
+typedef block<DistEntry>   DistEntry_S;
+typedef block<BenchEntry>  BenchEntry_S;
+
 static void bench(int iter,int size)
 {
+
+  DistEntry_S  dists(AllDistEntries,SIZEOF_ARRAY(AllDistEntries));
+  BenchEntry_S benchs(IntBenchEntries,SIZEOF_ARRAY(IntBenchEntries));
+
   int * data = (int *) malloc(sizeof(int) * size);
   int * copied = (int *) malloc(sizeof(int) * size);
   int iter_tmp = iter;
+  
+  const size_t allRuns = iter * benchs.size() * dists.size();
 
-  const int allRuns = iter * 
-                      SIZEOF_ARRAY(IntBenchEntries) * 
-                      SIZEOF_ARRAY(AllDistEntries);
   int curentRun = 0;
-  for (int dist_i=0; dist_i < SIZEOF_ARRAY(AllDistEntries);dist_i++){
+  for (int dist_i=0; dist_i < dists.size();dist_i++){
 
-    dist_t dist = AllDistEntries[dist_i].dist;
+    dist_t dist = dists[dist_i].dist;
     generate_test_datas(copied,copied+size,dist);
 
     for (int iter_i = 0 ; iter_i < iter; iter_i++)
-      for(int i = 0; i < SIZEOF_ARRAY(IntBenchEntries);i++){
-        cerr << "run " << AllDistEntries[dist_i].name
-             << '/'    << IntBenchEntries[i].name 
+      for(int i = 0; i < benchs.size();i++){
+        cerr << "run " << dists[dist_i].name
+             << '/'    << benchs[i].name 
              << " : "  << ++curentRun << '/' << allRuns 
              << " [";
-        sortalgo_t runalgo = IntBenchEntries[i].algo;
+        sortalgo_t runalgo = benchs[i].algo;
         if ( (runalgo == paul_qsort ||runalgo ==  Bentley_qsort6 )&&
               dist == reversed   &&
                size >= 1000000){
@@ -1260,8 +1291,7 @@ static void bench(int iter,int size)
          cerr<<"-]";
         }else{
           std::copy(copied,copied+size,data);
-          IntBenchEntries[i].timesPerRun[dist][iter_i] = 
-            run_sort(runalgo, data, size);
+          benchs[i].timesPerRun[dist][iter_i] = run_sort(runalgo, data, size);
 
           bool IsOK = true;
           int i;
