@@ -21,7 +21,7 @@ inline void Bentleyswap(DType*x,int i, int j)
 }
 
 template <typename _RanIt>
-void generate_test_datas(_RanIt _First, _RanIt _Last)
+void generate_test_datas(_RanIt _First, _RanIt _Last, int)
 {
   typedef iterator_traits<_RanIt>::value_type value_t;
   value_t i = 0;
@@ -35,10 +35,10 @@ inline void random_string(random& rand, int len, string& dst)
       dst[i] = static_cast<char>(' ' + rand.uniform(95));   // ' ' .. '~'  
 }
 
-void generate_test_datas(string* first,string*last)
+
+void generate_test_datas(string* first,string*last,int len)
 {
   random rand(16807);
-  int len = 16;
   while(first < last){
     random_string(rand,len,*first++);
   }
@@ -89,11 +89,11 @@ const char* methodName[max_method_count] =
 double timesPerRun[max_method_count][maxIter];
 
 template <typename VType>
-static void bench(int iter,int size)
+static void bench(int iter,int size,int VLen = 0)
 {
   VType * data = (VType *) malloc(sizeof(VType) * size);  
   std::uninitialized_fill(data,  data+size,   VType());
-  generate_test_datas(data,data+size);
+  generate_test_datas(data,data+size,VLen);
 
 
   const int allRuns = iter * max_method_count;
@@ -167,12 +167,37 @@ int main(int argc, char *argv[])
       <<'\n';
     }
 
-  bench<string>(Iter,N);
+  bench<string>(Iter,N,16);
   for (int j = 0; j < Iter;j++)
     for(int i = 0;i < max_method_count;i++){
-      cout<<"string"   <<delim
+      cout<<"string 16"   <<delim
         <<methodName[i]<<delim
         <<timesPerRun[i][j]
       <<'\n';
     }
+  bench<string>(Iter,N,17);
+  for (int j = 0; j < Iter;j++)
+    for(int i = 0;i < max_method_count;i++){
+      cout<<"string 17"   <<delim
+        <<methodName[i]<<delim
+        <<timesPerRun[i][j]
+      <<'\n';
+    }
+  bench<string>(Iter,N,128);
+  for (int j = 0; j < Iter;j++)
+    for(int i = 0;i < max_method_count;i++){
+      cout<<"string 128"   <<delim
+        <<methodName[i]<<delim
+        <<timesPerRun[i][j]
+      <<'\n';
+    }
+  bench<string>(Iter,N,256);
+  for (int j = 0; j < Iter;j++)
+    for(int i = 0;i < max_method_count;i++){
+      cout<<"string 256"   <<delim
+        <<methodName[i]<<delim
+        <<timesPerRun[i][j]
+      <<'\n';
+    }
+
 }
