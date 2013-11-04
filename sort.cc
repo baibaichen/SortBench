@@ -6,6 +6,7 @@
 #include <functional>
 #include <iostream>
 #include <cstdint>
+#include <string>
 
 #include "quicksort.h"
 #include "dualpivotquick.h"
@@ -1023,6 +1024,13 @@ DistEntry AllDistEntries[] =
   {unique_key_100,     "10^2 U key"},
 };
 
+inline void random_string(random& rand, int len, string& dst)
+{
+  dst.resize(len);
+  for (int i = 0; i < len; i++)
+    dst[i] = static_cast<char>(' ' + rand.uniform(95));   // ' ' .. '~'  
+}
+
 template <typename _RanIt>
 void generate_test_datas(_RanIt _First, _RanIt _Last, dist_t dist)
 {
@@ -1129,33 +1137,6 @@ struct BenchEntry
   double timesPerRun[STATE_NUMBER][maxIter];
 };
 
-BenchEntry IntBenchEntries[] =
-{
-  {c_qsort,              "       c qsort"},
-  {stl_sort,             "      c++ sort"},
-  {stl_stable_sort,      "c++ stablesort"},
-  {stl_heap_sort,        "  c++ heapsort"},
-  {paul_qsort,           "    paul qsort"},
-  {paul_mergesort,       "paul mergesort"},
-  {paul_heapSort,        " paul heapsort"},
-  {Bentley_qsort,        " single i sort"},
-  {Bentley_qsort5,       "  random pivot"},
-  {Bentley_qsort6,       "  med of 3[m3]"},
-  {Bentley_qsort6_1_0,   "NG m3[ Simple]"}, //no guard median of 3, simple implementation
-  {Bentley_qsort6_1_1,   "NG m3[ STLP M]"}, //no guard, using STLPORT median3
-  {Bentley_qsort6_1_2,   "NG m3[ STLP P]"}, //no guard, using STLPORT partition
-  {Bentley_qsort6_1_2_0, "NG m3[   my P]"}, //no guard, rewritten partition
-  {Bentley_qsort6_1_3,   "NG m3[STLP MP]"}, //no guard, using STLPORT median and partition
-  {Bentley_qsort7,       "adaptive pivot"},
-  {Bentley_qsort8,       "3way partition"},
-  {java_dual_pivot,      "    dual pivot"},
-  {Template_DQSort,      "template Dsort"},
-  {STLPort_Sort,         " stl port sort"},
-  {STLPort_Sort_Compare, " STLP sort cmp"},
-  {Template_QSort,       " template sort"},
-  {java_timsort,         "       timsort"},
-};
-
 #ifndef SIZEOF_ARRAY
 #define SIZEOF_ARRAY(x) ((sizeof(x))/(sizeof(x[0])))
 #endif // SIZEOF_ARRAY
@@ -1166,8 +1147,9 @@ int intcomp(int *x, int *y)
   return *x - *y;
 }
 
-inline static double run_sort(sortalgo_t runalgo, int * data, int size )
+inline static double run_sort(sortalgo_t runalgo, int* data, int* last)
 {
+  int size = static_cast<int>(last-data);
   clock_t t1 = clock();
   switch (runalgo){
   case c_qsort:
@@ -1175,14 +1157,14 @@ inline static double run_sort(sortalgo_t runalgo, int * data, int size )
       (int (__cdecl *)(const void *,const void *)) intcomp);
     break;
   case stl_sort:
-    std::sort(data,data+size);
+    std::sort(data,last);
     break;
   case stl_stable_sort:
-    std::stable_sort(data,data+size);
+    std::stable_sort(data,last);
     break;
   case stl_heap_sort:
-    make_heap(data,data+size);
-    sort_heap(data,data+size);
+    make_heap(data,last);
+    sort_heap(data,last);
     break;
   case paul_qsort:
      quickSort(data,size);
@@ -1205,23 +1187,23 @@ inline static double run_sort(sortalgo_t runalgo, int * data, int size )
     break;
   case Bentley_qsort6_1_0:
     qsort6_1_0(data,0,size-1);
-    SortBench_STLPORT::__final_insertion_sort(data,data+size);
+    SortBench_STLPORT::__final_insertion_sort(data,last);
     break;
   case Bentley_qsort6_1_1:
     qsort6_1_1(data,0,size-1);
-    SortBench_STLPORT::__final_insertion_sort(data,data+size);
+    SortBench_STLPORT::__final_insertion_sort(data,last);
     break;
   case Bentley_qsort6_1_2:
     qsort6_1_2(data,0,size-1);
-    SortBench_STLPORT::__final_insertion_sort(data,data+size);
+    SortBench_STLPORT::__final_insertion_sort(data,last);
     break;
   case Bentley_qsort6_1_2_0:
     qsort6_1_2_0(data,0,size-1);
-    SortBench_STLPORT::__final_insertion_sort(data,data+size);
+    SortBench_STLPORT::__final_insertion_sort(data,last);
     break;
   case Bentley_qsort6_1_3:
     qsort6_1_3(data,0,size-1);
-    SortBench_STLPORT::__final_insertion_sort(data,data+size);
+    SortBench_STLPORT::__final_insertion_sort(data,last);
     break;
   case Bentley_qsort7:
     qsort7(data,0,size-1);
@@ -1233,21 +1215,21 @@ inline static double run_sort(sortalgo_t runalgo, int * data, int size )
     doSort(data, 0,size-1);
     break;
   case java_timsort:
-    gfx::timsort(data,data+size);
+    gfx::timsort(data,last);
     break;
   case Template_QSort:
-    SortBench::QuickSort_Meidan9(data,data+size);
-    SortBench_STLPORT::__final_insertion_sort(data,data+size);
+    SortBench::QuickSort_Meidan9(data,last);
+    SortBench_STLPORT::__final_insertion_sort(data,last);
     break;
   case Template_DQSort:
-    SortBenchDual::dp_qsort(data,data+size,3);
-    SortBench_STLPORT::__final_insertion_sort(data,data+size);
+    SortBenchDual::dp_qsort(data,last,3);
+    SortBench_STLPORT::__final_insertion_sort(data,last);
   case STLPort_Sort:
-    SortBench_STLPORT::sort(data,data+size);
+    SortBench_STLPORT::sort(data,last);
     break;
   case STLPort_Sort_Compare:
     {
-      SortBench_STLPORT::sort(data,data+size,std::less<int>());
+      SortBench_STLPORT::sort(data,last,std::less<int>());
       break;
     }
   }
@@ -1255,9 +1237,55 @@ inline static double run_sort(sortalgo_t runalgo, int * data, int size )
   return (double)(t2-t1)/CLOCKS_PER_SEC;
 }
 
+
+template <typename _RanIt>
+inline static double 
+run_sort(sortalgo_t runalgo, _RanIt first, _RanIt last)
+{
+  typedef typename iterator_traits<_RanIt>::value_type  _ValueType;
+  clock_t t1 = clock();
+  switch (runalgo)
+  {
+  case stl_sort:
+    std::sort(first,last);
+    break;
+  case stl_stable_sort:
+    std::stable_sort(first,last);
+    break;
+  case stl_heap_sort:
+    make_heap(first,last);
+    sort_heap(first,last);
+    break;
+  case java_timsort:
+    gfx::timsort(first,last);
+    break;
+  case Template_QSort:
+    SortBench::QuickSort_Meidan9(first,last);
+    SortBench_STLPORT::__final_insertion_sort(first,last);
+    break;
+  case Template_DQSort:
+    SortBenchDual::dp_qsort(first,last,3);
+    SortBench_STLPORT::__final_insertion_sort(first,last);
+    break;
+  case STLPort_Sort:
+    SortBench_STLPORT::sort(first,last);
+    break;
+  case STLPort_Sort_Compare:
+    SortBench_STLPORT::sort(first,last,std::less<_ValueType>());
+    break;
+  default:
+    cerr<<"error!!!!!!" ;
+    break;
+  }
+  clock_t t2 = clock();
+  return (double)(t2-t1)/CLOCKS_PER_SEC;
+}
+
+
 typedef block<DistEntry>   DistEntry_S;
 typedef block<BenchEntry>  BenchEntry_S;
 
+template <typename VType>
 static void 
 bench(int iter,
       int size, 
@@ -1265,8 +1293,11 @@ bench(int iter,
       BenchEntry_S& benchs)
 {
 
-  int * data = (int *) malloc(sizeof(int) * size);
-  int * copied = (int *) malloc(sizeof(int) * size);
+  VType *data   = (VType *) malloc(sizeof(VType) * size);
+  VType *copied = (VType *) malloc(sizeof(VType) * size);
+  std::uninitialized_fill(data,  data+size,   VType());
+  std::uninitialized_fill(copied,copied+size, VType());
+
   int iter_tmp = iter;
   
   const size_t allRuns = iter * benchs.size() * dists.size();
@@ -1292,7 +1323,7 @@ bench(int iter,
          cerr<<"-]";
         }else{
           std::copy(copied,copied+size,data);
-          benchs[i].timesPerRun[dist][iter_i] = run_sort(runalgo, data, size);
+          benchs[i].timesPerRun[dist][iter_i] = run_sort(runalgo, data, data+size);
 
           bool IsOK = true;
           int i;
@@ -1315,6 +1346,7 @@ bench(int iter,
   free(copied);
 }
 
+#define  delim  ','
 void 
 report(int Iter, 
        int N, 
@@ -1323,47 +1355,114 @@ report(int Iter,
 {
   //if (N == 1000000)
   {
-    cout<< "    size    \t" 
-      << "   method   \t" ;
-    for (int k =0; k < benchs.size();k++)
-      cout<<benchs[k].name << '\t';
+    cout<< "    size    " <<delim
+      << "   method   "   <<delim ;
+    for (int k =0; k < dists.size();k++){
+      cout<<dists[k].name;
+      if(k < dists.size() - 1)
+        cout << delim;
+    }
     cout <<"\n";
   }
 
   for (int j = 0; j < Iter;j++)
     for(int i = 0;i < benchs.size();i++){
-      cout<<N<<"    \t"<<benchs[i].name<<'\t';
+      cout<<N<<delim<<"    "<<benchs[i].name<<delim;
       for (int k =0; k < dists.size();k++) {
         dist_t dist =  dists[k].dist;
-        cout<<benchs[i].timesPerRun[dist][j] << '\t';
+        cout<<benchs[i].timesPerRun[dist][j];
+        if(k < dists.size() - 1)
+          cout << delim;
       }
       cout <<"\n";
     }
 }
+
+void generate_test_datas(std::string* _First, std::string* _Last, dist_t dist)
+{
+  std::string* first_tmp = _First;
+  if(dist == randomized){
+    random rand(16807);
+    int len = 16;
+    while (first_tmp != _Last)
+      random_string(rand,len,*first_tmp++);
+    return;
+  }
+}
+
+void benchString(int Iter,int N)
+{
+  DistEntry StringDistEntries[] =
+  {
+    //  {sorted,             "    sorted"},
+    {randomized,         "    random"},
+    //{reversed,           "  R sorted"},
+    //{partially_sorted_0, "  sort[10]"},
+    //{partially_sorted_1, "sort[1000]"},
+    //{unique_key_100000,  "10^5 U key"},
+    //{unique_key_100,     "10^2 U key"},
+  };
+
+  BenchEntry StringBenchEntries[] =
+  {
+    //{stl_sort,             "      c++ sort"},
+    //{stl_stable_sort,      "c++ stablesort"},
+    //{stl_heap_sort,        "  c++ heapsort"},
+    //{Template_DQSort,      "template Dsort"},
+    {STLPort_Sort,         "     STLP sort"},
+    //{STLPort_Sort_Compare, " STLP sort cmp"},
+    {Template_QSort,       " template sort"},
+    {java_timsort,         "       timsort"},
+  };
+  DistEntry_S  dists(StringDistEntries,SIZEOF_ARRAY(StringDistEntries));
+  BenchEntry_S benchs(StringBenchEntries,SIZEOF_ARRAY(StringBenchEntries));
+  bench<std::string>(Iter,N,dists,benchs);
+  report(Iter,N,dists,benchs);
+}
+
+void benchInt( int Iter, int N )
+{
+  BenchEntry IntBenchEntries[] =
+  {
+    //{c_qsort,              "       c qsort"},
+    //{stl_sort,             "      c++ sort"},
+    //{stl_stable_sort,      "c++ stablesort"},
+    //{stl_heap_sort,        "  c++ heapsort"},
+    //{paul_qsort,           "    paul qsort"},
+    //{paul_mergesort,       "paul mergesort"},
+    //{paul_heapSort,        " paul heapsort"},
+    {Bentley_qsort,        " single i sort"},
+    {Bentley_qsort5,       "  random pivot"},
+    {Bentley_qsort6,       "  med of 3[m3]"},
+    {Bentley_qsort6_1_0,   "NG m3[ Simple]"}, //no guard median of 3, simple implementation
+    {Bentley_qsort6_1_1,   "NG m3[ STLP M]"}, //no guard, using STLPORT median3
+    {Bentley_qsort6_1_2,   "NG m3[ STLP P]"}, //no guard, using STLPORT partition
+    {Bentley_qsort6_1_2_0, "NG m3[   my P]"}, //no guard, rewritten partition
+    {Bentley_qsort6_1_3,   "NG m3[STLP MP]"}, //no guard, using STLPORT median and partition
+    {Bentley_qsort7,       "adaptive pivot"},
+    {Bentley_qsort8,       "3way partition"},
+    //{java_dual_pivot,      "    dual pivot"},
+    //{Template_DQSort,      "template Dsort"},
+    //{STLPort_Sort,         " stl port sort"},
+    //{STLPort_Sort_Compare, " STLP sort cmp"},
+    //{Template_QSort,       " template sort"},
+    //{java_timsort,         "       timsort"},
+  };
+  DistEntry_S  dists(AllDistEntries,SIZEOF_ARRAY(AllDistEntries));
+  BenchEntry_S benchs(IntBenchEntries,SIZEOF_ARRAY(IntBenchEntries));
+  bench<int>(Iter,N,dists,benchs);
+  report(Iter,N,dists,benchs);
+}
+
 int main(int argc, char *argv[])
 {
-    int N = 50000000;
-    int Iter = 10;
-    if (argc < 3) 
-      fprintf(stderr, "Usage: %s [%d] [%d]\n", argv[0], N,Iter);
-    if (argc > 1)    N = atoi(argv[1]);
-    if (argc > 2) Iter = atoi(argv[2]);
-
-    Iter = min(Iter,maxIter);
-
-    DistEntry_S  dists(AllDistEntries,SIZEOF_ARRAY(AllDistEntries));
-    BenchEntry_S benchs(IntBenchEntries,SIZEOF_ARRAY(IntBenchEntries));
-
-    bench(Iter,N,dists,benchs);
-    report(Iter,N,dists,benchs);
-
-    //for (int j = 0; j < Iter;j++)
-    //  for(int i = 0;i < SIZEOF_ARRAY(IntBenchEntries);i++){
-    //    cout<<N<<"    \t"<<IntBenchEntries[i].name<<'\t';
-    //    for (int k =0; k < SIZEOF_ARRAY(AllDistEntries);k++) {
-    //      dist_t dist =  AllDistEntries[k].dist;
-    //      cout<<IntBenchEntries[i].timesPerRun[dist][j] << '\t';
-    //    }
-    //    cout <<"\n";
-    //}
+  int N = 50000000;
+  int Iter = 10;
+  if (argc < 3) 
+    fprintf(stderr, "Usage: %s [%d] [%d]\n", argv[0], N,Iter);
+  if (argc > 1)    N = atoi(argv[1]);
+  if (argc > 2) Iter = atoi(argv[2]);
+  Iter = min(Iter,maxIter);
+  //benchInt(Iter, N);
+  benchString(Iter, N);
 }
