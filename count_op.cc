@@ -48,7 +48,6 @@ inline void random_string(random& rand, int len, std::string& dst)
 
 void generate_random_sequnce(std::string* _First, std::string* _Last, uint32_t seed)
 {
-  std::uninitialized_fill(_First,_Last, "");
   random r(seed);
   int len = 16;
   while(_First < _Last){
@@ -133,7 +132,8 @@ inline void QuickSort(_RanIt _First, _RanIt _Last, _Compare __comp)
   if(std::distance(_First,_Last) <= cutoff )
     return;
 
-  less_with_count<_RanIt> lt;
+  //less_with_count<_RanIt> lt;
+  std::less<_RanIt> lt;
   _RanIt Mid = _First + (_Last - _First) / 2;  
   _RanIt pm = Median9(_First, Mid, _Last-1,__comp);
   count_iter_swap(_First,pm);
@@ -155,7 +155,8 @@ inline void QuickSort(_RanIt _First, _RanIt _Last, _Compare __comp)
   QuickSort(cut+1,_Last,__comp);
 }
 
-inline static void resetCounterAndSequence(uint32_t * copied, int size, uint32_t * data )
+template<class _RanIt>
+inline static void resetCounterAndSequence(_RanIt copied, int size, _RanIt data )
 {
   std::copy(copied,copied+size,data);
   g_comp_with_count = 0;
@@ -182,11 +183,16 @@ inline void verify(_RanIt _First, _RanIt _Last)
     cout<<"[F],";
 }
 
+#define  delim  ','
+
 template <typename VType>
 static void bench(int iter,int size)
 {
   VType * data = (VType *) malloc(sizeof(VType) * size);
   VType * copied = (VType *) malloc(sizeof(VType) * size);
+
+  std::uninitialized_fill(data,  data+size,   VType());
+  std::uninitialized_fill(copied,copied+size, VType());
 
   for (int i = 0; i <iter;i++)
   {
@@ -198,7 +204,7 @@ static void bench(int iter,int size)
     //cout << i<<",STLPORTSORT,";
     //verify(data,data+size);
     //cout << g_comp_with_count
-    //     <<','
+    //     <<delim
     //     << g_swap_with_count
     //     <<'\n';
 
@@ -209,12 +215,12 @@ static void bench(int iter,int size)
       SortBench_STLPORT::__final_insertion_sort(data,data+size,less_with_count<VType>());
       clock_t t2 = clock();
 
-      cout << i<<",STLPORTSORT,";
+      cout << i<<delim<<"STLPORTSORT"<<delim;
       verify(data,data+size);
       cout << g_comp_with_count
-        <<','
+        <<delim
         << g_swap_with_count
-        <<','
+        <<delim
         <<((double)(t2-t1)/CLOCKS_PER_SEC)
         <<'\n';
     }
@@ -225,13 +231,12 @@ static void bench(int iter,int size)
       QuickSort(data,data+size,less_with_count<VType>());
       SortBench_STLPORT::__final_insertion_sort(data,data+size,less_with_count<VType>());
       clock_t t2 = clock();
-
-      cout << i<<",Median of 3 median,";
+      cout << i<<delim<<"Median of 3 median"<<delim;
       verify(data,data+size);
       cout << g_comp_with_count
-        <<','
+        <<delim
         << g_swap_with_count
-        <<','
+        <<delim
         <<((double)(t2-t1)/CLOCKS_PER_SEC)
         <<'\n';
     }
@@ -243,6 +248,7 @@ static void bench(int iter,int size)
 
 int main(int argc, char *argv[])
 {
-  bench<uint32_t>(6,1024*1024*100);
+  //bench<uint32_t>(1,1024*1024*100);
+  bench<std::string>(10,1024*1024*10);
   return 0;
 }
