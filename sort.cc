@@ -1014,13 +1014,13 @@ struct DistEntry
 };
 DistEntry AllDistEntries[] =
 {
-  //{sorted,             "    sorted"},
+  {sorted,             "    sorted"},
   {randomized,         "    random"},
-  //{reversed,           "  R sorted"},
-  //{partially_sorted_0, "  sort[10]"},
-  //{partially_sorted_1, "sort[1000]"},
-  //{unique_key_100000,  "10^5 U key"},
-  //{unique_key_100,     "10^2 U key"},
+  {reversed,           "  R sorted"},
+  {partially_sorted_0, "  sort[10]"},
+  {partially_sorted_1, "sort[1000]"},
+  {unique_key_100000,  "10^5 U key"},
+  {unique_key_100,     "10^2 U key"},
 };
 
 template <typename _RanIt>
@@ -1131,29 +1131,29 @@ struct BenchEntry
 
 BenchEntry IntBenchEntries[] =
 {
-  //{c_qsort,              "       c qsort"},
-  //{stl_sort,             "      c++ sort"},
-  //{stl_stable_sort,      "c++ stablesort"},
-  //{stl_heap_sort,        "  c++ heapsort"},
-  //{paul_qsort,           "    paul qsort"},
-  //{paul_mergesort,       "paul mergesort"},
-  //{paul_heapSort,        " paul heapsort"},
-  //{Bentley_qsort,        " single i sort"},
-  //{Bentley_qsort5,       "  random pivot"},
-  //{Bentley_qsort6,       "  med of 3[m3]"},
-  //{Bentley_qsort6_1_0,   "NG m3[ Simple]"}, //no guard median of 3, simple implementation
-  //{Bentley_qsort6_1_1,   "NG m3[ STLP M]"}, //no guard, using STLPORT median3
-  //{Bentley_qsort6_1_2,   "NG m3[ STLP P]"}, //no guard, using STLPORT partition
-  //{Bentley_qsort6_1_2_0, "NG m3[   my P]"}, //no guard, rewritten partition
-  //{Bentley_qsort6_1_3,   "NG m3[STLP MP]"}, //no guard, using STLPORT median and partition
-  //{Bentley_qsort7,       "adaptive pivot"},
-  //{Bentley_qsort8,       "3way partition"},
-  //{java_dual_pivot,      "    dual pivot"},
-  //{Template_DQSort,      "template Dsort"},
+  {c_qsort,              "       c qsort"},
+  {stl_sort,             "      c++ sort"},
+  {stl_stable_sort,      "c++ stablesort"},
+  {stl_heap_sort,        "  c++ heapsort"},
+  {paul_qsort,           "    paul qsort"},
+  {paul_mergesort,       "paul mergesort"},
+  {paul_heapSort,        " paul heapsort"},
+  {Bentley_qsort,        " single i sort"},
+  {Bentley_qsort5,       "  random pivot"},
+  {Bentley_qsort6,       "  med of 3[m3]"},
+  {Bentley_qsort6_1_0,   "NG m3[ Simple]"}, //no guard median of 3, simple implementation
+  {Bentley_qsort6_1_1,   "NG m3[ STLP M]"}, //no guard, using STLPORT median3
+  {Bentley_qsort6_1_2,   "NG m3[ STLP P]"}, //no guard, using STLPORT partition
+  {Bentley_qsort6_1_2_0, "NG m3[   my P]"}, //no guard, rewritten partition
+  {Bentley_qsort6_1_3,   "NG m3[STLP MP]"}, //no guard, using STLPORT median and partition
+  {Bentley_qsort7,       "adaptive pivot"},
+  {Bentley_qsort8,       "3way partition"},
+  {java_dual_pivot,      "    dual pivot"},
+  {Template_DQSort,      "template Dsort"},
   {STLPort_Sort,         " stl port sort"},
-  //{STLPort_Sort_Compare, " STLP sort cmp"},
+  {STLPort_Sort_Compare, " STLP sort cmp"},
   {Template_QSort,       " template sort"},
-  //{java_timsort,         "       timsort"},
+  {java_timsort,         "       timsort"},
 };
 
 #ifndef SIZEOF_ARRAY
@@ -1258,11 +1258,12 @@ inline static double run_sort(sortalgo_t runalgo, int * data, int size )
 typedef block<DistEntry>   DistEntry_S;
 typedef block<BenchEntry>  BenchEntry_S;
 
-static void bench(int iter,int size)
+static void 
+bench(int iter,
+      int size, 
+      const DistEntry_S& dists , 
+      BenchEntry_S& benchs)
 {
-
-  DistEntry_S  dists(AllDistEntries,SIZEOF_ARRAY(AllDistEntries));
-  BenchEntry_S benchs(IntBenchEntries,SIZEOF_ARRAY(IntBenchEntries));
 
   int * data = (int *) malloc(sizeof(int) * size);
   int * copied = (int *) malloc(sizeof(int) * size);
@@ -1302,9 +1303,9 @@ static void bench(int iter,int size)
             }
           }
           if(IsOK)
-            cerr<<"OK]";
+            cerr<<"K]";
           else
-            cerr<<"FAIL at "<<i<<"]";
+            cerr<<"F="<<i<<"]";
         }
         cerr << '\n';
     }
@@ -1312,6 +1313,32 @@ static void bench(int iter,int size)
   }
   free(data);
   free(copied);
+}
+
+void 
+report(int Iter, 
+       int N, 
+       const DistEntry_S& dists , 
+       const BenchEntry_S& benchs)
+{
+  //if (N == 1000000)
+  {
+    cout<< "    size    \t" 
+      << "   method   \t" ;
+    for (int k =0; k < benchs.size();k++)
+      cout<<benchs[k].name << '\t';
+    cout <<"\n";
+  }
+
+  for (int j = 0; j < Iter;j++)
+    for(int i = 0;i < benchs.size();i++){
+      cout<<N<<"    \t"<<benchs[i].name<<'\t';
+      for (int k =0; k < dists.size();k++) {
+        dist_t dist =  dists[k].dist;
+        cout<<benchs[i].timesPerRun[dist][j] << '\t';
+      }
+      cout <<"\n";
+    }
 }
 int main(int argc, char *argv[])
 {
@@ -1324,24 +1351,19 @@ int main(int argc, char *argv[])
 
     Iter = min(Iter,maxIter);
 
-    bench(Iter,N);
+    DistEntry_S  dists(AllDistEntries,SIZEOF_ARRAY(AllDistEntries));
+    BenchEntry_S benchs(IntBenchEntries,SIZEOF_ARRAY(IntBenchEntries));
 
-    //if (N == 1000000)
-    {
-      cout<< "    size    \t" 
-          << "   method   \t" ;
-      for (int k =0; k < SIZEOF_ARRAY(AllDistEntries);k++)
-          cout<<AllDistEntries[k].name << '\t';
-      cout <<"\n";
-    }
-  
-    for (int j = 0; j < Iter;j++)
-      for(int i = 0;i < SIZEOF_ARRAY(IntBenchEntries);i++){
-        cout<<N<<"    \t"<<IntBenchEntries[i].name<<'\t';
-        for (int k =0; k < SIZEOF_ARRAY(AllDistEntries);k++) {
-          dist_t dist =  AllDistEntries[k].dist;
-          cout<<IntBenchEntries[i].timesPerRun[dist][j] << '\t';
-        }
-        cout <<"\n";
-    }
+    bench(Iter,N,dists,benchs);
+    report(Iter,N,dists,benchs);
+
+    //for (int j = 0; j < Iter;j++)
+    //  for(int i = 0;i < SIZEOF_ARRAY(IntBenchEntries);i++){
+    //    cout<<N<<"    \t"<<IntBenchEntries[i].name<<'\t';
+    //    for (int k =0; k < SIZEOF_ARRAY(AllDistEntries);k++) {
+    //      dist_t dist =  AllDistEntries[k].dist;
+    //      cout<<IntBenchEntries[i].timesPerRun[dist][j] << '\t';
+    //    }
+    //    cout <<"\n";
+    //}
 }
