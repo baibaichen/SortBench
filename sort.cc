@@ -1405,14 +1405,14 @@ void benchString(int Iter,int N)
 
   BenchEntry StringBenchEntries[] =
   {
-    //{stl_sort,             "      c++ sort"},
+    {stl_sort,             "      c++ sort"},
     //{stl_stable_sort,      "c++ stablesort"},
     //{stl_heap_sort,        "  c++ heapsort"},
-    //{Template_DQSort,      "template Dsort"},
+    {Template_DQSort,      "template Dsort"},
     {STLPort_Sort,         "     STLP sort"},
     //{STLPort_Sort_Compare, " STLP sort cmp"},
     {Template_QSort,       " template sort"},
-    {java_timsort,         "       timsort"},
+    //{java_timsort,         "       timsort"},
   };
   DistEntry_S  dists(StringDistEntries,SIZEOF_ARRAY(StringDistEntries));
   BenchEntry_S benchs(StringBenchEntries,SIZEOF_ARRAY(StringBenchEntries));
