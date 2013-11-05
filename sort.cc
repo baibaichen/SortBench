@@ -1353,7 +1353,7 @@ report(int Iter,
        const DistEntry_S& dists , 
        const BenchEntry_S& benchs)
 {
-  //if (N == 1000000)
+  if (N == 1000000)
   {
     cout<< "    size    " <<delim
       << "   method   "   <<delim ;
