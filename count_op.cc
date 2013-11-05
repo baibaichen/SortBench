@@ -10,24 +10,32 @@
 #include "quicksort.h"
 #include "random.h"
 
-uint64_t  g_comp_with_count;
+
+uint64_t  g_comp_count;
 template<class _Ty>
 struct less_with_count
   : public std::binary_function<_Ty, _Ty, bool>
 {	// functor for operator<
   bool operator()(const _Ty& _Left, const _Ty& _Right) const
   {	
-    g_comp_with_count++;
+    g_comp_count++;
     return (_Left < _Right);
   }
 };
 
-uint64_t  g_swap_with_count;
+uint64_t  g_swap_count;
 template<class _FwdIt1,class _FwdIt2> 
 inline void count_iter_swap(_FwdIt1 _Left, _FwdIt2 _Right)
 {	
-  g_swap_with_count++;
+  g_swap_count++;
   std::swap(*_Left, *_Right);
+}
+namespace std{
+  //this is very bad!
+  void iter_swap(std::string*_Left, std::string* _Right)  {
+    g_swap_count++;
+    swap(*_Left, *_Right);
+  }
 }
 
 template <typename _RanIt>
@@ -56,13 +64,6 @@ void generate_random_sequnce(std::string* _First, std::string* _Last, uint32_t s
 }
 
 const int cutoff  = 32;
-//template<class _RanIt,typename _Compare>
-//inline _RanIt Med3(_RanIt _First, _RanIt _Mid, _RanIt _Last, _Compare __comp)
-//{ 
-//  return (__comp(*_First , *_Mid))?
-//    (__comp(*_Mid , *_Last)? _Mid: __comp(*_First , *_Last) ? _Last:_First):
-//    (__comp(*_Last, *_Mid )? _Mid: __comp(*_First , *_Last) ? _First:_Last);
-//}
 
 template<typename _RanIt ,typename _Compare>
 inline _RanIt Med3(_RanIt __a, _RanIt __b, _RanIt __c, _Compare __comp)
@@ -93,34 +94,6 @@ inline _RanIt Median9(_RanIt _First, _RanIt _Mid, _RanIt _Last, _Compare __comp)
     return Med3(p1,p2,p3,__comp);
   }else
     return Med3(_First, _Mid, _Last,__comp);
-}
-
-
-template<class _RanIt,typename _Compare>
-inline void STLPORT_QuickSort(_RanIt _First, _RanIt _Last, _Compare __comp)
-{	// order [_First, _Last), using __comp
-
-  typedef iterator_traits<_RanIt>::value_type value_t;
-
-  if(std::distance(_First,_Last) <= cutoff )
-    return ;
-
-  _RanIt Mid = _First + (_Last - _First) / 2;
-  //value_t pivot = *(Median9(_First, Mid, _Last-1,__comp));
-  value_t pivot = SortBench_STLPORT::__median3(*_First,*Mid,*(_Last-1),__comp);
-
-  _RanIt cut = _First - 1;
-  _RanIt backwardI = _Last;
-  for (;;){
-    do ++cut; while (__comp(*cut, pivot));
-    do --backwardI; while (__comp(pivot , *backwardI));
-    if (cut >= backwardI)
-      break;
-    count_iter_swap(cut,backwardI);
-  }
-
-  STLPORT_QuickSort(_First,cut,__comp);
-  STLPORT_QuickSort(cut,_Last,__comp);
 }
 
 template<class _RanIt,typename _Compare>
@@ -159,8 +132,8 @@ template<class _RanIt>
 inline static void resetCounterAndSequence(_RanIt copied, int size, _RanIt data )
 {
   std::copy(copied,copied+size,data);
-  g_comp_with_count = 0;
-  g_swap_with_count = 0;
+  g_comp_count = 0;
+  g_swap_count = 0;
 }
 
 
@@ -178,7 +151,7 @@ inline void verify(_RanIt _First, _RanIt _Last)
     }
   }
   if(IsOK)
-    cout<<"[P]"<<delim;
+    cout<<"[K]"<<delim;
   else
     cout<<"[F]"<<delim;
 }
@@ -189,9 +162,9 @@ inline void report(_RanIt _First, _RanIt _Last, int seed, const char* name, doub
 {
   cout << seed <<delim<<name<<delim;
   verify(_First,_Last);
-  cout  << g_comp_with_count
+  cout  << g_comp_count
         << delim
-        << g_swap_with_count
+        << g_swap_count
         << delim
         << time
         <<'\n';
@@ -201,8 +174,8 @@ template<class _RanIt>
 inline static void resetCounterAndSequence(_RanIt copiedFisrt, _RanIt copiedLast, _RanIt data )
 {
   std::copy(copiedFisrt,copiedLast,data);
-  g_comp_with_count = 0;
-  g_swap_with_count = 0;
+  g_comp_count = 0;
+  g_swap_count = 0;
 }
 
 template <typename _RanIt>
@@ -211,14 +184,10 @@ static void singleBench(_RanIt copiedFisrt, _RanIt copiedLast,_RanIt data, int s
   typedef iterator_traits<_RanIt>::difference_type diff_t;
   diff_t size = copiedLast - copiedFisrt;
 
-  //resetCounterAndSequence(copiedFisrt, copiedLast, data);
-  //SortBench_STLPORT::sort(data,data+size,less_with_count<uint32_t>());
-
   {
     resetCounterAndSequence(copiedFisrt, copiedLast, data);
     clock_t t1 = clock();
-    STLPORT_QuickSort(data,data+size,less_with_count<value_t>());
-    SortBench_STLPORT::__final_insertion_sort(data,data+size,less_with_count<value_t>());
+    SortBench_STLPORT::sort(data,data+size,less_with_count<value_t>());
     clock_t t2 = clock();
     report(data,data+size,seed,"STLPORTSORT",(double)(t2-t1)/CLOCKS_PER_SEC);
   }
