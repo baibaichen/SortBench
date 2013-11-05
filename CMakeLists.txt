@@ -2,16 +2,17 @@ project (SortBench)
 cmake_minimum_required (VERSION 2.6)
 
 if(MSVC)
-  #add_definitions( -D_CRT_SECURE_NO_WARNINGS )
+  add_definitions( -D_CRT_SECURE_NO_WARNINGS )
   #add_definitions( -D_CRT_SECURE_NO_DEPRECATE )
   add_definitions(-D_SCL_SECURE_NO_WARNINGS)
 endif()
 
 SET(sortbench_src sort.cc dualpivot_sort.cc sort.h drand48.h timsort.h 
-				  quicksort.h dualpivotquick.h)
+				  quicksort.h dualpivotquick.h random.h)
 ADD_EXECUTABLE(sortbench ${sortbench_src})
 ADD_EXECUTABLE(swapbench swaptest.cc)
 ADD_EXECUTABLE(count_op count_op.cc quicksort.h)
+ADD_EXECUTABLE(radixsort radixsort.cc)
 
 
 MESSAGE(STATUS "")
