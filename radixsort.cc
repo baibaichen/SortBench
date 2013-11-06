@@ -115,7 +115,7 @@ namespace american_flag{
   enum { SIZE = 510, THRESHOLD = 16 };
   typedef unsigned char *cString;
   typedef struct { cString *sa; int sn, si; } stack_t;
-  void simplesort(cString*, int, int);
+  void simplesort(cString*, int, int){}
   static void rsorta(cString *a, int n ,int b)
   {
 #define push(a, n, i) sp->sa = a, sp->sn = n, (sp++)->si = i
