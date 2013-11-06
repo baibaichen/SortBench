@@ -47,13 +47,6 @@ void generate_random_sequnce(_RanIt _First, _RanIt _Last, uint32_t seed)
     *first_tmp++ = r.next();
 }
 
-inline void random_string(random& rand, int len, std::string& dst)
-{
-  dst.resize(len);
-  for (int i = 0; i < len; i++)
-    dst[i] = static_cast<char>(' ' + rand.uniform(95));   // ' ' .. '~'  
-}
-
 void generate_random_sequnce(std::string* _First, std::string* _Last, uint32_t seed)
 {
   random r(seed);

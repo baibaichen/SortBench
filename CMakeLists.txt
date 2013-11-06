@@ -8,7 +8,7 @@ if(MSVC)
 endif()
 
 SET(sortbench_src sort.cc dualpivot_sort.cc sort.h drand48.h timsort.h 
-				  quicksort.h dualpivotquick.h random.h)
+				  quicksort.h dualpivotquick.h random.h slice.h)
 ADD_EXECUTABLE(sortbench ${sortbench_src})
 ADD_EXECUTABLE(swapbench swaptest.cc)
 ADD_EXECUTABLE(count_op count_op.cc quicksort.h)

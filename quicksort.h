@@ -9,7 +9,7 @@ namespace SortBench{
   const int cutoff = 32;
 
   template<typename _RanIt>
-  inline _RanIt Med3(_RanIt __a, _RanIt __b, _RanIt __c)
+  inline _RanIt __Med3(_RanIt __a, _RanIt __b, _RanIt __c)
   {
     if (*__a < *__b)
       if (*__b < *__c)
@@ -34,16 +34,16 @@ namespace SortBench{
   //}
 
   template<class _RanIt> inline
-  _RanIt Median9(_RanIt _First, _RanIt _Mid, _RanIt _Last)
+  _RanIt __Median9(_RanIt _First, _RanIt _Mid, _RanIt _Last)
   { 
     if (40 < _Last - _First){ 
       size_t _Step = (_Last - _First + 1) / 8;
-      _RanIt p1 = Med3(_First, _First + _Step, _First + 2 * _Step);
-      _RanIt p2 = Med3(_Mid - _Step, _Mid, _Mid + _Step);
-      _RanIt p3 = Med3(_Last - 2 * _Step, _Last - _Step, _Last);
-      return Med3(p1,p2,p3);
+      _RanIt p1 = __Med3(_First, _First + _Step, _First + 2 * _Step);
+      _RanIt p2 = __Med3(_Mid - _Step, _Mid, _Mid + _Step);
+      _RanIt p3 = __Med3(_Last - 2 * _Step, _Last - _Step, _Last);
+      return __Med3(p1,p2,p3);
     }else
-      return Med3(_First, _Mid, _Last);
+      return __Med3(_First, _Mid, _Last);
   }
 
   template<class _BidIt> inline
@@ -64,7 +64,7 @@ namespace SortBench{
 
   template<class _BidIt,
   class _Ty> inline
-    void _Insertion_sort1(_BidIt _First, _BidIt _Last, _Ty *)
+    void My_Insertion_sort1(_BidIt _First, _BidIt _Last, _Ty *)
   {	// insertion sort [_First, _Last), using operator<
     if (_First != _Last)
       for (_BidIt _Next = _First; ++_Next != _Last; )
@@ -87,7 +87,7 @@ namespace SortBench{
   }
 
   template<class _Iter> inline
-  typename std::iterator_traits<_Iter>::value_type *_Val_type(_Iter)
+  typename std::iterator_traits<_Iter>::value_type *_VAL_type(_Iter)
   {	// return value type from arbitrary argument
     return (0);
   }
@@ -95,7 +95,7 @@ namespace SortBench{
   template<class _BidIt> inline
   void _Insertion_sort(_BidIt _First, _BidIt _Last)
   {	// insertion sort [_First, _Last), using operator<
-    _Insertion_sort1(_First, _Last, _Val_type(_First));
+    My_Insertion_sort1(_First, _Last, _VAL_type(_First));
   }
 
 
@@ -109,7 +109,7 @@ namespace SortBench{
       return;// Insertion_sort(_First,_Last);
 
     _RanIt Mid = _First + (_Last - _First) / 2;  // sort median to _Mid
-    _RanIt pm = Median9(_First, Mid, _Last-1);
+    _RanIt pm = __Median9(_First, Mid, _Last-1);
     std::iter_swap(_First,pm);
 
     value_t pivot = *_First;
@@ -138,7 +138,7 @@ namespace SortBench{
       return;// Insertion_sort(_First,_Last);
 
     _RanIt Mid = _First + (_Last - _First) / 2;
-    value_t pivot = *(Med3(_First, Mid, _Last-1));
+    value_t pivot = *(__Med3(_First, Mid, _Last-1));
 
     _RanIt cut = _First - 1;
     _RanIt backwardI = _Last;
@@ -163,7 +163,7 @@ namespace SortBench{
       return;// Insertion_sort(_First,_Last);
 
     _RanIt Mid = _First + (_Last - _First) / 2;
-    value_t pivot = *(Median9(_First, Mid, _Last-1));
+    value_t pivot = *(__Median9(_First, Mid, _Last-1));
 
     _RanIt cut = _First - 1;
     _RanIt backwardI = _Last;
@@ -232,7 +232,7 @@ namespace SortBench_STLPORT{
     typedef typename iterator_traits<_RandomAccessIterator>::value_type
       _ValueType;
     
-    using SortBench::Median9;
+    using SortBench::__Median9;
 
     while (__last - __first > int(_S_threshold)){
       if (__depth_limit == 0){

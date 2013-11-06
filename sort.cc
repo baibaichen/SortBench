@@ -15,6 +15,7 @@
 #include "timsort.h"
 #include "drand48.h"
 #include "random.h"
+#include "slice.h"
 
 template<typename T> struct block {
   typedef T  value_type;
@@ -1024,13 +1025,6 @@ DistEntry AllDistEntries[] =
   {unique_key_100,     "10^2 U key"},
 };
 
-inline void random_string(random& rand, int len, string& dst)
-{
-  dst.resize(len);
-  for (int i = 0; i < len; i++)
-    dst[i] = static_cast<char>(' ' + rand.uniform(95));   // ' ' .. '~'  
-}
-
 template <typename _RanIt>
 void generate_test_datas(_RanIt _First, _RanIt _Last, dist_t dist)
 {
@@ -1260,8 +1254,8 @@ run_sort(sortalgo_t runalgo, _RanIt first, _RanIt last)
     gfx::timsort(first,last);
     break;
   case Template_QSort:
-    SortBench::QuickSort_Meidan9(first,last);
-    SortBench_STLPORT::__final_insertion_sort(first,last);
+    SortBench::QuickSort(first,last);
+    SortBench::_Insertion_sort(first,last);
     break;
   case Template_DQSort:
     SortBenchDual::dp_qsort(first,last,3);
@@ -1390,6 +1384,19 @@ void generate_test_datas(std::string* _First, std::string* _Last, dist_t dist)
   }
 }
 
+void generate_test_datas(sliceChar_16* _First, sliceChar_16* _Last, dist_t dist)
+{
+  sliceChar_16* first_tmp = _First;
+  if(dist == randomized){
+    random rand(16807);
+    int len = 16;
+    while (first_tmp != _Last)
+      random_string(rand,len,*first_tmp++);
+    return;
+  }
+}
+
+
 void benchString(int Iter,int N)
 {
   DistEntry StringDistEntries[] =
@@ -1408,7 +1415,7 @@ void benchString(int Iter,int N)
     {stl_sort,             "      c++ sort"},
     //{stl_stable_sort,      "c++ stablesort"},
     //{stl_heap_sort,        "  c++ heapsort"},
-    {Template_DQSort,      "template Dsort"},
+    //{Template_DQSort,      "template Dsort"},
     {STLPort_Sort,         "     STLP sort"},
     //{STLPort_Sort_Compare, " STLP sort cmp"},
     {Template_QSort,       " template sort"},
@@ -1416,7 +1423,8 @@ void benchString(int Iter,int N)
   };
   DistEntry_S  dists(StringDistEntries,SIZEOF_ARRAY(StringDistEntries));
   BenchEntry_S benchs(StringBenchEntries,SIZEOF_ARRAY(StringBenchEntries));
-  bench<std::string>(Iter,N,dists,benchs);
+  //bench<std::string>(Iter,N,dists,benchs);
+  bench<sliceChar_16>(Iter,N,dists,benchs);
   report(Iter,N,dists,benchs);
 }
 

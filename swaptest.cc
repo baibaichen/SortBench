@@ -9,6 +9,7 @@
 #include <string>
 #include <memory>
 #include "random.h"
+#include "slice.h"
 
 using namespace std;
 
@@ -28,15 +29,17 @@ void generate_test_datas(_RanIt _First, _RanIt _Last, int)
   while (_First != _Last)
     *_First++ = i++;
 }
-inline void random_string(random& rand, int len, string& dst)
-{
-  dst.resize(len);
-  for (int i = 0; i < len; i++)
-      dst[i] = static_cast<char>(' ' + rand.uniform(95));   // ' ' .. '~'  
-}
-
 
 void generate_test_datas(string* first,string*last,int len)
+{
+  random rand(16807);
+  while(first < last){
+    random_string(rand,len,*first++);
+  }
+}
+
+template<typename T,int N> 
+void generate_test_datas(slice<T,N>* first,slice<T,N>*last,int len)
 {
   random rand(16807);
   while(first < last){
@@ -167,6 +170,14 @@ int main(int argc, char *argv[])
       <<'\n';
     }
 
+  bench<string>(Iter,N,12);
+  for (int j = 0; j < Iter;j++)
+    for(int i = 0;i < max_method_count;i++){
+      cout<<"string 12"   <<delim
+        <<methodName[i]<<delim
+        <<timesPerRun[i][j]
+      <<'\n';
+    }
   bench<string>(Iter,N,16);
   for (int j = 0; j < Iter;j++)
     for(int i = 0;i < max_method_count;i++){
@@ -175,10 +186,18 @@ int main(int argc, char *argv[])
         <<timesPerRun[i][j]
       <<'\n';
     }
-  bench<string>(Iter,N,17);
+  bench<string>(Iter,N,32);
   for (int j = 0; j < Iter;j++)
     for(int i = 0;i < max_method_count;i++){
-      cout<<"string 17"   <<delim
+      cout<<"string 32"   <<delim
+        <<methodName[i]<<delim
+        <<timesPerRun[i][j]
+      <<'\n';
+    }
+  bench<string>(Iter,N,64);
+  for (int j = 0; j < Iter;j++)
+    for(int i = 0;i < max_method_count;i++){
+      cout<<"string 64"   <<delim
         <<methodName[i]<<delim
         <<timesPerRun[i][j]
       <<'\n';
@@ -199,5 +218,5 @@ int main(int argc, char *argv[])
         <<timesPerRun[i][j]
       <<'\n';
     }
-
+  bench<sliceChar_16>(Iter,N,16);
 }

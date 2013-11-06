@@ -26,4 +26,12 @@ struct random
   uint32_t uniform(int n) { return next() % n; }
 };
 
+template<typename STRING_T>
+inline void random_string(random& rand, int len, STRING_T& dst)
+{
+  dst.resize(len);
+  for (int i = 0; i < len; i++)
+    dst[i] = static_cast<char>(' ' + rand.uniform(95));   // ' ' .. '~'  
+}
+
 #endif // _random_H__
