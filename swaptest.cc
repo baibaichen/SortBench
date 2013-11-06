@@ -170,53 +170,112 @@ int main(int argc, char *argv[])
       <<'\n';
     }
 
-  bench<string>(Iter,N,12);
+  //bench<string>(Iter,N,12);
+  //for (int j = 0; j < Iter;j++)
+  //  for(int i = 0;i < max_method_count;i++){
+  //    cout<<"string 12"   <<delim
+  //      <<methodName[i]<<delim
+  //      <<timesPerRun[i][j]
+  //    <<'\n';
+  //  }
+  //bench<string>(Iter,N,16);
+  //for (int j = 0; j < Iter;j++)
+  //  for(int i = 0;i < max_method_count;i++){
+  //    cout<<"string 16"   <<delim
+  //      <<methodName[i]<<delim
+  //      <<timesPerRun[i][j]
+  //    <<'\n';
+  //  }
+  //bench<string>(Iter,N,32);
+  //for (int j = 0; j < Iter;j++)
+  //  for(int i = 0;i < max_method_count;i++){
+  //    cout<<"string 32"   <<delim
+  //      <<methodName[i]<<delim
+  //      <<timesPerRun[i][j]
+  //    <<'\n';
+  //  }
+  //bench<string>(Iter,N,64);
+  //for (int j = 0; j < Iter;j++)
+  //  for(int i = 0;i < max_method_count;i++){
+  //    cout<<"string 64"   <<delim
+  //      <<methodName[i]<<delim
+  //      <<timesPerRun[i][j]
+  //    <<'\n';
+  //  }
+  //bench<string>(Iter,N,128);
+  //for (int j = 0; j < Iter;j++)
+  //  for(int i = 0;i < max_method_count;i++){
+  //    cout<<"string 128"   <<delim
+  //      <<methodName[i]<<delim
+  //      <<timesPerRun[i][j]
+  //    <<'\n';
+  //  }
+  //bench<string>(Iter,N,256);
+  //for (int j = 0; j < Iter;j++)
+  //  for(int i = 0;i < max_method_count;i++){
+  //    cout<<"string 256"   <<delim
+  //      <<methodName[i]<<delim
+  //      <<timesPerRun[i][j]
+  //    <<'\n';
+  //  }
+
+  typedef slice<char, 12> sliceChar_12;
+  typedef slice<char, 32> sliceChar_32;
+  typedef slice<char, 64> sliceChar_64;
+  typedef slice<char, 128> sliceChar_128;
+  typedef slice<char, 256> sliceChar_256;
+
+  bench<sliceChar_12>(Iter,N,12);
   for (int j = 0; j < Iter;j++)
     for(int i = 0;i < max_method_count;i++){
-      cout<<"string 12"   <<delim
+      cout<<"12"   <<delim
         <<methodName[i]<<delim
         <<timesPerRun[i][j]
       <<'\n';
     }
-  bench<string>(Iter,N,16);
-  for (int j = 0; j < Iter;j++)
-    for(int i = 0;i < max_method_count;i++){
-      cout<<"string 16"   <<delim
-        <<methodName[i]<<delim
-        <<timesPerRun[i][j]
-      <<'\n';
-    }
-  bench<string>(Iter,N,32);
-  for (int j = 0; j < Iter;j++)
-    for(int i = 0;i < max_method_count;i++){
-      cout<<"string 32"   <<delim
-        <<methodName[i]<<delim
-        <<timesPerRun[i][j]
-      <<'\n';
-    }
-  bench<string>(Iter,N,64);
-  for (int j = 0; j < Iter;j++)
-    for(int i = 0;i < max_method_count;i++){
-      cout<<"string 64"   <<delim
-        <<methodName[i]<<delim
-        <<timesPerRun[i][j]
-      <<'\n';
-    }
-  bench<string>(Iter,N,128);
-  for (int j = 0; j < Iter;j++)
-    for(int i = 0;i < max_method_count;i++){
-      cout<<"string 128"   <<delim
-        <<methodName[i]<<delim
-        <<timesPerRun[i][j]
-      <<'\n';
-    }
-  bench<string>(Iter,N,256);
-  for (int j = 0; j < Iter;j++)
-    for(int i = 0;i < max_method_count;i++){
-      cout<<"string 256"   <<delim
-        <<methodName[i]<<delim
-        <<timesPerRun[i][j]
-      <<'\n';
-    }
+
   bench<sliceChar_16>(Iter,N,16);
+  for (int j = 0; j < Iter;j++)
+    for(int i = 0;i < max_method_count;i++){
+      cout<<"16"   <<delim
+        <<methodName[i]<<delim
+        <<timesPerRun[i][j]
+      <<'\n';
+    }
+
+  bench<sliceChar_32>(Iter,N,32);
+  for (int j = 0; j < Iter;j++)
+    for(int i = 0;i < max_method_count;i++){
+      cout<<"32"   <<delim
+        <<methodName[i]<<delim
+        <<timesPerRun[i][j]
+      <<'\n';
+    }
+
+  bench<sliceChar_64>(Iter,N,64);
+  for (int j = 0; j < Iter;j++)
+    for(int i = 0;i < max_method_count;i++){
+      cout<<"64"   <<delim
+        <<methodName[i]<<delim
+        <<timesPerRun[i][j]
+      <<'\n';
+    }
+  bench<sliceChar_128>(Iter,N,128);
+  for (int j = 0; j < Iter;j++)
+    for(int i = 0;i < max_method_count;i++){
+      cout<<"128"   <<delim
+        <<methodName[i]<<delim
+        <<timesPerRun[i][j]
+      <<'\n';
+    }
+
+  bench<sliceChar_256>(Iter,N,256);
+  for (int j = 0; j < Iter;j++)
+    for(int i = 0;i < max_method_count;i++){
+      cout<<"256"   <<delim
+        <<methodName[i]<<delim
+        <<timesPerRun[i][j]
+      <<'\n';
+    }
+
 }
