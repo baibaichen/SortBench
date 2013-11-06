@@ -1415,7 +1415,7 @@ void benchString(int Iter,int N)
     {stl_sort,             "      c++ sort"},
     //{stl_stable_sort,      "c++ stablesort"},
     //{stl_heap_sort,        "  c++ heapsort"},
-    //{Template_DQSort,      "template Dsort"},
+    {Template_DQSort,      "template Dsort"},
     {STLPort_Sort,         "     STLP sort"},
     //{STLPort_Sort_Compare, " STLP sort cmp"},
     {Template_QSort,       " template sort"},
