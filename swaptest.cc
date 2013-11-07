@@ -54,12 +54,12 @@ void test_iter_swap(_RanIt _First, _RanIt _Last)
 }
 
 
-template <typename _RanIt>
-int test_compare(_RanIt _First, _RanIt _Last)
+template <typename _RanIt,typename _Ty>
+int test_compare(_RanIt _First, _RanIt _Last, const _Ty& val)
 { // [_Frist,_Last)
   register int temp = 0;
   while(_First < _Last){
-    if(*_First++ <  *--_Last)
+    if(*_First++ <  val)
       temp++;
   } 
   return temp;
@@ -98,6 +98,7 @@ static void bench(int iter,int size,int VLen = 0)
   std::uninitialized_fill(data,  data+size,   VType());
   generate_test_datas(data,data+size,VLen);
 
+  VType tmp = data[size/2];
 
   const int allRuns = iter * max_method_count;
   int curentRun = 0;
@@ -111,12 +112,14 @@ static void bench(int iter,int size,int VLen = 0)
       {
       case itertor_swap:
         test_iter_swap(data,data+size);
+        test_iter_swap(data,data+size);
         break;
       case array_swap:
         test_Bentleyswap(data,0,size-1);
+        test_Bentleyswap(data,0,size-1);
         break;
       case value_compare:
-        xxx = test_compare(data,data+size);
+        xxx = test_compare(data,data+size,tmp);
         break;
       }
       clock_t t2 = clock();
