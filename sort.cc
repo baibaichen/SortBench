@@ -23,10 +23,11 @@ template<typename T> struct block {
   typedef const T * const_iterator;
   typedef T& reference;
   typedef const T & const_reference;
+  typedef ptrdiff_t difference_type;
 
   operator T*() {return data_; }
-  reference operator[](size_t i) { return data_[i]; }
-  const_reference operator [](size_t i) const { return data_[i]; }
+  reference operator[](difference_type i) { return data_[i]; }
+  const_reference operator [](difference_type i) const { return data_[i]; }
   iterator begin(){ return data_;}
   const_iterator begin() const { return data_;}
   iterator end(){ return data_+size_;}
