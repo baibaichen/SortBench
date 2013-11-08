@@ -104,6 +104,7 @@ namespace SortBench{
   {	// order [_First, _Last), using operator<
 
     typedef iterator_traits<_RanIt>::value_type value_t;
+    typedef iterator_traits<_RanIt>::reference  reference_t;
 
     if(std::distance(_First,_Last) <= cutoff )
       return;// Insertion_sort(_First,_Last);
@@ -112,7 +113,7 @@ namespace SortBench{
     _RanIt pm = __Median9(_First, Mid, _Last-1);
     std::iter_swap(_First,pm);
 
-    value_t pivot = *_First;
+    reference_t pivot = *_First;
 
     _RanIt forwardI = _First;
     _RanIt cut = _Last;
@@ -133,7 +134,6 @@ namespace SortBench{
     void QuickSort_Median3(_RanIt _First, _RanIt _Last)
   {	
     typedef iterator_traits<_RanIt>::value_type value_t;
-
     if(std::distance(_First,_Last) <= cutoff )
       return;// Insertion_sort(_First,_Last);
 
@@ -177,6 +177,51 @@ namespace SortBench{
 
     QuickSort_Meidan9(_First,cut);
     QuickSort_Meidan9(cut,_Last);
+  }
+
+  template<class _RanIt> inline void    
+  _3wayUnguarded_partition(_RanIt _First, _RanIt _Last)
+  {// partition [_First, _Last), using operator<
+
+    typedef iterator_traits<_RanIt>::reference        reference_t;
+    typedef iterator_traits<_RanIt>::difference_type  diff_t;
+
+    _RanIt Mid = _First + (_Last - _First) / 2;  // sort median to _Mid
+    _RanIt pm = __Median9(_First, Mid, _Last-1);
+    std::iter_swap(_First,pm);
+    reference_t pivot = *_First;
+    
+    _RanIt  pa,pb,pc,pd;
+    pa = pb =_First+1 ;
+    pc = pd = _Last-1;
+
+    for (;;){
+      for(; pb <= pc ; ++pb){
+        if(*pb < pivot)
+          ;
+        else if( pivot < *pb)
+          break;
+        else
+         std::iter_swap(pa++,pb);
+      }
+
+      for (; pb <= pc; --pc)
+      {
+        if(pivot < *pc )
+          ;
+        else if( *pc < pivot)
+          break;
+        else
+          std::iter_swap(pc,pd--);        
+      }
+
+      if(pb > pc )
+        break;
+      std::iter_swap(pc,pb);
+      ++pb; --pc;
+
+    }
+
   }
 }
 
