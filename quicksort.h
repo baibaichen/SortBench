@@ -179,7 +179,7 @@ namespace SortBench{
     QuickSort_Meidan9(cut,_Last);
   }
 
-  template<class _RanIt> inline void    
+  template<class _RanIt> inline std::pair<_RanIt, _RanIt>    
   _3wayUnguarded_partition(_RanIt _First, _RanIt _Last)
   {// partition [_First, _Last), using operator<
 
@@ -205,8 +205,7 @@ namespace SortBench{
          std::iter_swap(pa++,pb);
       }
 
-      for (; pb <= pc; --pc)
-      {
+      for (; pb <= pc; --pc) {
         if(pivot < *pc )
           ;
         else if( *pc < pivot)
@@ -219,9 +218,47 @@ namespace SortBench{
         break;
       std::iter_swap(pc,pb);
       ++pb; --pc;
-
     }
 
+    diff_t s = std::min(pa-_First,pb-pa);
+    std::swap_ranges(_First,_First+s,pb-s);
+
+    s=std::min(pd-pc,_Last-1-pd);
+    std::swap_ranges(pb,pb+s,_Last-s);
+
+    return (pair<_RanIt, _RanIt>(_First+(pb-pa), _Last-(pd-pc)));
+  }
+
+  template<class _RanIt,
+  class _Diff> inline
+    void _Sort(_RanIt _First, _RanIt _Last, _Diff _Ideal)
+  {	// order [_First, _Last), using operator<
+    _Diff _Count;
+    for (; cutoff < (_Count = _Last - _First) && 0 < _Ideal; )
+    {	// divide and conquer by quicksort
+      std::pair<_RanIt, _RanIt> _Mid =
+        _3wayUnguarded_partition(_First, _Last);
+      _Ideal /= 2, _Ideal += _Ideal / 2;	// allow 1.5 log2(N) divisions
+
+      if (_Mid.first - _First < _Last - _Mid.second)
+      {	// loop on second half
+        _Sort(_First, _Mid.first, _Ideal);
+        _First = _Mid.second;
+      }
+      else
+      {	// loop on first half
+        _Sort(_Mid.second, _Last, _Ideal);
+        _Last = _Mid.first;
+      }
+    }
+
+    if (cutoff < _Count)
+    {	// heap sort if too many divisions
+      std::make_heap(_First, _Last);
+      std::sort_heap(_First, _Last);
+    }
+    else if (1 < _Count)
+      _Insertion_sort(_First, _Last);	// small
   }
 }
 
