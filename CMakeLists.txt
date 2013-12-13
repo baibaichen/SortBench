@@ -14,6 +14,7 @@ ADD_EXECUTABLE(swapbench swaptest.cc)
 ADD_EXECUTABLE(count_op count_op.cc quicksort.h)
 ADD_EXECUTABLE(radixsort radixsort.cc)
 
+add_subdirectory(merge)
 
 MESSAGE(STATUS "")
 MESSAGE(STATUS "")
